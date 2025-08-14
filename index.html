@@ -1,0 +1,3551 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>对战游戏</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url('https://cdn.yiranlaoshi.com/video/1754967658551-pasted-image-1754967658551.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #444;
+            background: transparent;
+            width: 100%;
+            height: 100%;
+            filter: blur(5px); /* 初始模糊效果 */
+        }
+        
+        #welcomeScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0,0,0,0.7);
+            z-index: 100;
+        }
+        #welcomeMessage {
+            color: white;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .gameButton {
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 1.2em;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .gameButton:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <audio id="backgroundMusic" src="background_music.mp3" loop></audio>
+    <div id="musicControl" style="position: absolute; top: 10px; left: 10px; z-index: 101;">
+        <button id="musicToggleButton" style="background-color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 20px;">▶️</button>
+    </div>
+    <audio id="gameMusic" src="game_music.mp3" loop></audio>
+
+    <div id="welcomeScreen">
+        <div id="welcomeMessage">欢迎玩家1号</div>
+        <div id="rulesModal" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; position: relative;">
+                <span style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="document.getElementById('rulesModal').style.display = 'none';">&times;</span>
+                <h2>游戏规则</h2>
+                <p id="rulesContent"></p>
+            </div>
+        </div>
+        <div id="exitConfirmModal" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px; text-align: center;">
+                <h2>你真的要离开么？</h2>
+                <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                    <button id="confirmExitBtn" class="gameButton" style="background-color: #aaa;">残忍离开</button>
+                    <button id="cancelExitBtn" class="gameButton" style="background-color: #3498db;">开心留下</button>
+                </div>
+            </div>
+        </div>
+        <div id="difficultyModal" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px; text-align: center;">
+                <h2>选择游戏难度</h2>
+                <div style="display: flex; flex-direction: column; margin-top: 20px;">
+                    <button id="easyModeBtn" class="gameButton" onclick="startGame(1)" style="background-color: green;">简单模式</button>
+                    <button id="normalModeBtn" class="gameButton" onclick="startGame(2)" style="background-color: blue;">正常模式</button>
+                    <button id="hardModeBtn" class="gameButton" onclick="startGame(3)" style="background-color: red;">困难模式</button>
+                    <button id="hellModeBtn" class="gameButton" onclick="startGame(4)" style="background-color: brown;">地狱模式</button>
+                </div>
+            </div>
+        </div>
+        <div id="rulesSelectModal" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px; text-align: center;">
+                <h2>选择游戏规则模式</h2>
+                <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+                    <button id="singlePlayerRulesBtn" class="gameButton" style="background-color: blue;">单人模式</button>
+                    <button id="multiPlayerRulesBtn" class="gameButton" style="background-color: blue;">双人模式</button>
+                </div>
+            </div>
+        </div>
+        <button id="singlePlayerBtn" class="gameButton">单人对战</button>
+        <button id="multiPlayerBtn" class="gameButton">双人对战</button>
+        <button id="exitBtn" class="gameButton" onclick="showExitConfirm()">退出游戏</button>
+        <button id="rulesBtn" class="gameButton" onclick="showRules()">游戏规则</button>
+
+    </div>
+    <canvas id="gameCanvas"></canvas>
+    <div id="mobileControls" style="position: absolute; bottom: 20px; width: 100%; display: none; justify-content: space-around;">
+        <button id="skill1Btn" style="padding: 10px 20px; font-size: 16px;">埋下地雷</button>
+        <button id="skill2Btn" style="padding: 10px 20px; font-size: 16px;">旋转射击</button>
+    </div>
+    <script >
+        // 根据电脑特征确定玩家编号的常量
+        const playerCount = getPlayerNumberByDevice();
+
+    // 根据设备特征确定玩家编号
+    function getPlayerNumberByDevice() {
+        // 使用多种设备特征来生成唯一标识
+        const deviceInfo = {
+            userAgent: navigator.userAgent,
+            language: navigator.language,
+            platform: navigator.platform,
+            screenWidth: screen.width,
+            screenHeight: screen.height,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            cookieEnabled: navigator.cookieEnabled,
+            onLine: navigator.onLine
+        };
+        
+        // 将设备信息转换为字符串并生成哈希
+        const deviceString = JSON.stringify(deviceInfo);
+        let hash = 0;
+        for (let i = 0; i < deviceString.length; i++) {
+            const char = deviceString.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // 转换为32位整数
+        }
+        
+        // 将哈希值转换为1-4之间的玩家编号
+        const playerNumber = Math.abs(hash % 4) + 1;
+        
+        // 存储到localStorage以保持一致性
+        const storedPlayerNumber = localStorage.getItem('playerNumber');
+        if (storedPlayerNumber) {
+            return parseInt(storedPlayerNumber);
+        } else {
+            localStorage.setItem('playerNumber', playerNumber.toString());
+            return playerNumber;
+        }
+    }
+
+    // 增加玩家计数器（保留原函数名以兼容现有代码，但现在只更新显示）
+    function incrementPlayerCount() {
+        // playerCount现在是常量，不再改变，只更新显示
+        document.getElementById('welcomeMessage').textContent = `欢迎玩家${playerCount}号`;
+    }
+
+    // 初始化欢迎消息
+    function initWelcomeMessage() {
+        document.getElementById('welcomeMessage').textContent = `欢迎玩家${playerCount}号`;
+    }
+    function showRules() {
+        // 直接显示README文件内容，不再询问单人还是双人模式
+        const readmeContent = `
+            <h1>对战游戏说明</h1>
+
+
+            <h2>游戏控制</h2>
+
+<h3>玩家1控制</h3>
+        <ul>
+            <li><strong>WASD键</strong>：移动角色</li>
+            <li><strong>鼠标左键</strong>：精确投掷手雷到点击位置(只在单人游戏有效，双人游戏下无效)</li>
+            <li><strong>";"键</strong>：范围伤害（只在双人游戏有效，单人游戏下无效）</li>
+            <li><strong>“‘”键</strong>：放置地雷</li>
+            <li><strong>“空格”键</strong>：旋转射击</li>
+
+
+<h3>玩家2控制（双人模式）</h3>
+        <ul>
+            <li><strong>WASD键</strong>：移动角色</li>
+            <li><strong>D键</strong>：范围伤害（只在双人游戏有效，单人游戏下无效）</li>
+            <li><strong>F键</strong>：放置地雷（敌人踩到它后0.5秒爆炸，伤害范围内敌人）</li>
+            <li><strong>G键</strong>：旋转射击（每0.3秒向不同方向发射子弹）</li>
+        </ul>
+
+<h2>技能说明</h2>
+        <ol>
+
+            <li><strong>手雷攻击</strong>
+                <ul><li>冷却时间10秒</li></ul>
+            </li>
+
+            <li><strong>地雷技能</strong>
+                <ul>
+                    <li>放置敌人踩到后0.5秒爆炸</li>
+                    <li>冷却时间10秒</li>
+                    <li>对范围内敌人造成60点伤害</li>
+                </ul>
+            </li>
+
+            <li><strong>旋转射击</strong>
+                <ul>
+                    <li>持续5秒</li>
+                    <li>冷却时间60秒</li>
+                    <li>每0.1秒发射一次子弹</li>
+                    <li>子弹伤害5点</li>
+                </ul>
+            </li>
+        </ol>
+
+
+<h2>敌人类型</h2>
+        <ol>
+
+            <li><strong>紫色敌人</strong>
+                <ul>
+                    <li>血量高（80点）</li>
+                    <li>移动慢</li>
+                </ul>
+            </li>
+
+            <li><strong>红色敌人</strong>
+                <ul>
+                    <li>血量低（50点）</li>
+                    <li>移动快</li>
+                    <li>攻击时移动速度降低20%</li>
+                </ul>
+            </li>
+        </ol>
+
+<h2>游戏特色</h2>
+        <ul>
+            <li>双人合作模式</li>
+            <li>多种敌人类型（紫色和红色敌人）</li>
+            <li>强大的Boss战斗系统</li>
+            <li>丰富的技能系统（普通攻击、地雷、手雷、旋转射击）</li>
+            <li>精确的手雷投掷系统</li>
+            <li>动态音效系统</li>
+        </ul>
+
+<h2>Boss技能系统</h2>
+
+<h3>Boss攻击机制</h3>
+        <ul>
+            <li><strong>子弹攻击</strong>：Boss发射的子弹击中玩家时，造成45点伤害并产生爆炸效果，使玩家移动速度减慢70%，减速效果持续10秒</li>
+            <li><strong>接触伤害</strong>：当Boss直接接触玩家时，每0.5秒连续扣除0.2血量</li>
+            <li><strong>技能释放</strong>：Boss会定期释放多波子弹攻击</li>
+        </ul>
+
+<h3>Boss防御机制</h3>
+        <ul>
+            <li>Boss可以被玩家的子弹击中并扣血</li>
+            <li>Boss血量耗尽后会死亡，游戏胜利</li>
+        </ul>
+
+<h2>游戏规则</h2>
+        <ol>
+            <li>击败所有敌人获胜</li>
+            <li>玩家血量归零则失败</li>
+            <li>游戏结束后可刷新页面返回主界面</li>
+        </ol>
+
+        `;
+        
+        document.getElementById('rulesContent').innerHTML = readmeContent;
+        document.getElementById('rulesModal').style.display = 'block';
+    }
+
+    const rulesContentSinglePlayer = `
+        <h3>单人模式游戏控制</h3>
+        <p>方向键：移动角色</p>
+        <p>鼠标左键：投出手雷</p>
+        <p>单引号键：放置地雷</p>
+        <p>空格键：旋转射击</p>
+
+        <h3>技能说明</h3>
+        <p>1. <strong>手雷攻击</strong></p>
+        <ul>
+            <li>冷却时间2秒</li>
+            <li>攻击时移动速度降低30%</li>
+        </ul>
+        <p>2. <strong>地雷技能</strong></p>
+        <ul>
+            <li>放置敌人踩到后0.5秒爆炸</li>
+            <li>冷却时间10秒</li>
+            <li>对范围内敌人造成60点伤害</li>
+        </ul>
+        <p>3. <strong>旋转射击</strong></p>
+        <ul>
+            <li>持续5秒</li>
+            <li>冷却时间60秒</li>
+            <li>每0.1秒发射一次子弹</li>
+            <li>子弹伤害5点</li>
+        </ul>
+        <p>4. <strong>范围攻击</strong></p>
+        <ul>
+            <li>以玩家为中心的瞬间范围攻击</li>
+            <li>冷却时间1秒</li>
+            <li>对范围内敌人造成15点伤害</li>
+        </ul>
+
+        <h3>敌人类型</h3>
+        <p>1. <strong>紫色敌人</strong></p>
+        <ul>
+            <li>血量高（80点）</li>
+            <li>移动慢</li>
+        </ul>
+        <p>2. <strong>红色敌人</strong></p>
+        <ul>
+            <li>血量低（50点）</li>
+            <li>移动快</li>
+            <li>攻击时移动速度降低20%</li>
+        </ul>
+
+        <h3>游戏规则</h3>
+        <p>1. 击败所有敌人获胜</p>
+        <p>2. 玩家血量归零则失败</p>
+        <p>3. 游戏结束后可刷新页面返回主界面</p>
+    `;
+
+    const rulesContentMultiPlayer = `
+        <h3>双人模式游戏控制</h3>
+        <p>玩家1：WASD或IJKL 移动，D键 随机投掷，鼠标左键 范围攻击，F键 放置地雷，G键 旋转射击</p>
+        <p>玩家2：方向键 移动，;键 随机投掷，Shift+鼠标左键 范围攻击，'键 放置地雷，空格键 旋转射击</p>
+
+        <h3>技能说明 (同单人模式)</h3>
+        <p>1. <strong>手雷攻击</strong></p>
+        <ul>
+            <li>冷却时间2秒</li>
+            <li>攻击时移动速度降低30%</li>
+        </ul>
+        <p>2. <strong>地雷技能</strong></p>
+        <ul>
+            <li>放置敌人踩到后0.5秒爆炸</li>
+            <li>冷却时间10秒</li>
+            <li>对范围内敌人造成60点伤害</li>
+        </ul>
+        <p>3. <strong>旋转射击</strong></p>
+        <ul>
+            <li>持续5秒</li>
+            <li>冷却时间60秒</li>
+            <li>每0.1秒发射一次子弹</li>
+            <li>子弹伤害5点</li>
+        </ul>
+
+        <h3>敌人类型 (同单人模式)</h3>
+        <p>1. <strong>紫色敌人</strong></p>
+        <ul>
+            <li>血量高（80点）</li>
+            <li>移动慢</li>
+        </ul>
+        <p>2. <strong>红色敌人</strong></p>
+        <ul>
+            <li>血量低（50点）</li>
+            <li>移动快</li>
+            <li>攻击时移动速度降低20%</li>
+        </ul>
+
+        <h3>游戏规则</h3>
+        <p>1. 击败所有敌人获胜</p>
+        <p>2. 玩家血量归零则失败</p>
+        <p>3. 游戏结束后可刷新页面返回主界面</p>
+    `;
+
+    document.getElementById('singlePlayerRulesBtn').addEventListener('click', function() {
+        document.getElementById('rulesSelectModal').style.display = 'none';
+        document.getElementById('rulesContent').innerHTML = rulesContentSinglePlayer;
+        document.getElementById('rulesModal').style.display = 'block';
+    });
+
+    document.getElementById('multiPlayerRulesBtn').addEventListener('click', function() {
+        document.getElementById('rulesSelectModal').style.display = 'none';
+        document.getElementById('rulesContent').innerHTML = rulesContentMultiPlayer;
+        document.getElementById('rulesModal').style.display = 'block';
+    });
+    // 单人对战按钮点击事件
+    document.getElementById('singlePlayerBtn').addEventListener('click', function() {
+        // 显示难度选择模态框
+        document.getElementById('difficultyModal').style.display = 'block';
+    });
+
+    // 难度选择按钮点击事件
+    document.getElementById('easyModeBtn').addEventListener('click', function() {
+        const mode = window.gameMode || 'single';
+        startGame('easy', mode);
+        window.gameMode = null; // 重置模式标记
+    });
+    document.getElementById('normalModeBtn').addEventListener('click', function() {
+        const mode = window.gameMode || 'single';
+        startGame('normal', mode);
+        window.gameMode = null; // 重置模式标记
+    });
+    document.getElementById('hardModeBtn').addEventListener('click', function() {
+        const mode = window.gameMode || 'single';
+        startGame('hard', mode);
+        window.gameMode = null; // 重置模式标记
+    });
+    document.getElementById('hellModeBtn').addEventListener('click', function() {
+        const mode = window.gameMode || 'single';
+        startGame('hell', mode);
+        window.gameMode = null; // 重置模式标记
+    });
+
+    // 开始游戏函数
+    function startGame(difficulty, mode = 'single') { // mode: 'single' or 'multi'
+        document.getElementById('difficultyModal').style.display = 'none';
+        incrementPlayerCount();
+        initWelcomeMessage();
+        document.getElementById('welcomeScreen').style.display = 'none';
+        document.getElementById('gameCanvas').style.filter = 'none';
+        
+        // 设置游戏背景为黑色
+        document.body.style.backgroundColor = 'black';
+        document.body.style.backgroundImage = 'none';
+        
+        currentGameMode = mode; // 设置当前游戏模式
+        init(difficulty, mode); // 初始化游戏并传入难度参数和模式
+        gameRunning = true; // 游戏状态设置为运行中
+        gameStartTime = Date.now(); // 记录游戏开始时间
+    lastBossSpawnCheckTime = 0; // 初始化上次检查Boss生成的时间为0，确保第一次检查在30秒后
+        gameLoop(); // 开始游戏循环
+
+        // 停止大厅音乐，播放游戏音乐
+        // 停止大厅音乐，播放游戏音乐
+        const bgMusic = document.getElementById('backgroundMusic');
+        if (bgMusic && !bgMusic.paused) {
+            bgMusic.pause();
+        }
+        const gameMusic = document.getElementById('gameMusic');
+        if (gameMusic) {
+            gameMusic.play();
+        }
+    }
+
+
+    // 双人对战按钮点击事件
+    document.getElementById('multiPlayerBtn').addEventListener('click', function() {
+        // 显示难度选择模态框
+        document.getElementById('difficultyModal').style.display = 'block';
+        // 设置为双人模式标记
+        window.gameMode = 'multi';
+    });
+
+
+    // 显示退出确认模态框
+    function showExitConfirm() {
+        document.getElementById('exitConfirmModal').style.display = 'block';
+    }
+
+    // “残忍离开”按钮点击事件
+    document.getElementById('confirmExitBtn').addEventListener('click', function() {
+        window.close();
+    });
+
+    // “开心留下”按钮点击事件
+    document.getElementById('cancelExitBtn').addEventListener('click', function() {
+        document.getElementById('exitConfirmModal').style.display = 'none';
+    });
+    let lastPurpleEnemySpawnTime = Date.now();
+let lastRedEnemySpawnTime = Date.now();
+
+// 音乐控制逻辑
+const musicToggleButton = document.getElementById('musicToggleButton');
+const backgroundMusic = document.getElementById('backgroundMusic');
+let isMusicPlaying = false;
+
+musicToggleButton.addEventListener('click', () => {
+    if (isMusicPlaying) {
+        backgroundMusic.pause();
+        musicToggleButton.textContent = '▶️';
+    } else {
+        backgroundMusic.play().catch(e => console.log("背景音乐播放失败: ", e));
+        musicToggleButton.textContent = '⏸️';
+    }
+    isMusicPlaying = !isMusicPlaying;
+});
+
+// 初始状态，如果音乐是自动播放的，则更新按钮状态
+backgroundMusic.addEventListener('play', () => {
+    musicToggleButton.textContent = '⏸️';
+    isMusicPlaying = true;
+});
+
+backgroundMusic.addEventListener('pause', () => {
+    musicToggleButton.textContent = '▶️';
+    isMusicPlaying = false;
+});
+
+// 尝试在页面加载时播放音乐，如果失败则等待用户交互
+backgroundMusic.play().then(() => {
+    musicToggleButton.textContent = '⏸️';
+    isMusicPlaying = true;
+}).catch(e => {
+    console.log("背景音乐自动播放失败，等待用户交互: ", e);
+    musicToggleButton.textContent = '▶️';
+    isMusicPlaying = false;
+});
+
+// 玩家对象
+// Player object should be defined here, before any functions
+
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const PLAYER_SPEED = 5;
+const PLAYER_ATTACK_SPEED_REDUCTION = 0.3; // 攻击时速度降低30%
+const ATTACK_RANGE = 100; // 普通攻击范围
+const ATTACK_DAMAGE = 20; // 增加攻击力
+const ATTACK_DURATION = 5000; // 攻击持续5秒
+const ATTACK_COOLDOWN = 2000; // 攻击冷却2秒
+const PLAYER_MAX_HEALTH = 100;
+const PLAYER_ATTACK_COOLDOWN = 200; // 默认攻击冷却时间 (毫秒)
+const GRENADE_COOLDOWN = 2000; // 默认手雷冷却时间 (毫秒)
+const MINE_COOLDOWN = 2000; // 默认地雷冷却时间 (毫秒)
+const ROTATE_SHOOT_COOLDOWN = 40000; // 默认旋转射击冷却时间 (毫秒)
+
+// 游戏状态
+let gameRunning = true;
+let lastEnemyAttackTime = null;
+let gameStartTime = 0; // 游戏开始时间
+let lastBossSpawnCheckTime = 0; // 上次检查Boss生成的时间
+let currentGameMode = 'single'; // 当前游戏模式：'single' 或 'multi'
+let player = {};
+let player2 = null; // Player 2 object, initially null
+let boss = null; // Boss 对象，初始为 null
+
+player = {
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        width: 30, // 固定角色大小
+        height: 30,
+        color: '#87CEEB',
+        health: PLAYER_MAX_HEALTH,
+        speed: PLAYER_SPEED,
+        isAttacking: false,
+        attackStartTime: 0,
+        attackEndTime: 0,
+        canMove: true,
+        canAttack: true,
+        moveUp: false,
+        moveDown: false,
+        moveLeft: false,
+        moveRight: false,
+        cnt: 0,
+        rotationAngle: 0, // 初始化旋转角度
+        // 地雷技能相关属性
+        canPlaceMine: true,
+        canMove: true,
+        lastMinePlaced: 0,
+    // 旋转射击技能相关属性
+    isRotateShooting: false,
+    rotateShootStartTime: 0,
+    rotateShootEndTime: 0,
+    lastBulletTime: 0,
+    rotationAngle: 0,
+    // 手雷技能相关属性
+    canThrowGrenade: true,
+    lastGrenadeThrowTime: 0,
+    canAreaAttack: true, // 是否可以进行范围攻击
+    lastAreaAttackTime: 0, // 上次范围攻击时间
+    // 旋转射击技能相关属性
+    canUseRotateShoot: true,
+    rotateShootCharges: 0,
+    lastRotateShootChargeTime: 0,
+    isChargingRotateShoot: false,
+    rotateShootActive: false,
+    rotateShootStartTime: 0,
+    rotateShootX: 0,
+    rotateShootY: 0
+};
+
+//判断客户是不是电脑端
+const isPC = /Windows|Macintosh|Linux/.test(navigator.userAgent);
+
+// 初始化移动端控制
+if (!isPC) {
+    document.getElementById('mobileControls').style.display = 'flex';
+    
+    // 第一个技能按钮
+    document.getElementById('skill1Btn').addEventListener('touchstart', function() {
+        // 第一个技能逻辑
+        activateBoomerangThrow();
+    });
+    
+    // 第二个技能按钮
+    document.getElementById('skill2Btn').addEventListener('touchstart', function() {
+        // 第二个技能逻辑
+        activateRotateShoot();
+    });
+}
+
+// 敌人数组
+let enemies = [];
+
+// 地雷数组
+let mines = [];
+
+// 子弹数组
+let bullets = [];
+
+// 紫色敌人子弹数组
+let purpleEnemyBullets = [];
+
+// 红色敌人子弹数组
+let redEnemyBullets = [];
+
+// 手雷数组
+let grenades = [];
+
+// 爆炸效果数组
+let explosions = [];
+
+// 决赛圈相关变量
+let finalCircleActive = false; // 决赛圈是否激活
+let finalCircleRadius = 0; // 当前决赛圈半径
+let finalCircleCenterX = 0; // 决赛圈中心X坐标
+let finalCircleCenterY = 0; // 决赛圈中心Y坐标
+let finalCircleStartTime = 0; // 决赛圈开始时间
+let gameWinner = null; // 游戏获胜者
+let finalBattleStarted = false; // 是否已开始决战
+let lastCircleDamageTime = 0; // 上次决赛圈伤害时间
+
+// 生成敌人
+canvas.width = window.innerWidth * 0.8;
+canvas.height = window.innerHeight * 0.8;
+
+// 移除自动开始游戏
+
+function generateEnemy(type, targetPlayer = player) { // targetPlayer 默认为 player1
+    let health, speed, color;
+    switch (type) {
+        case 'purple':
+            health = PURPLE_ENEMY_HEALTH;
+            speed = PURPLE_ENEMY_SPEED;
+            color = '#9b59b6'; // 紫色
+            break;
+        case 'red':
+            health = RED_ENEMY_HEALTH;
+            speed = RED_ENEMY_SPEED;
+            color = '#e74c3c'; // 红色
+            break;
+        default:
+            health = ENEMY_MAX_HEALTH;
+            speed = ENEMY_SPEED;
+            color = '#e74c3c'; // 默认红色
+    }
+
+    let x, y;
+    let attempts = 0;
+    const maxAttempts = 100;
+
+    do {
+        x = Math.random() * (canvas.width - 30);
+        y = Math.random() * (canvas.height - 30);
+        attempts++;
+
+        // 如果尝试次数过多，则放宽条件
+        if (attempts >= maxAttempts) break;
+
+    } while (Math.sqrt(Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2)) < ATTACK_RANGE);
+
+    const enemy = {
+        x: x,
+        y: y,
+        width: canvas.width / 20,
+        height: canvas.height / 20,
+        color: color,
+        health: health,
+        maxHealth: health,
+        speed: speed,
+        isDead: false,
+        isStunned: false,
+        stunStartTime: 0,
+        tickDamageStartTime: 0,
+        targetPlayer: targetPlayer, // 添加目标玩家属性
+        type: type, // 添加敌人类型
+        lastShootTime: 0 // 添加上次射击时间（紫色敌人需要）
+    };
+    enemies.push(enemy);
+}
+
+
+
+const ENEMY_MAX_HEALTH = 50;
+const PURPLE_ENEMY_HEALTH = 80; // 紫色敌人血量
+const PURPLE_ENEMY_SPEED = 0.05; // 紫色敌人速度
+const PURPLE_ENEMY_BULLET_SPEED = 3; // 紫色敌人子弹速度
+const PURPLE_ENEMY_BULLET_DAMAGE = 5; // 紫色敌人子弹伤害
+const PURPLE_ENEMY_SHOOT_INTERVAL = 3000; // 紫色敌人射击间隔（3秒）
+const RED_ENEMY_SHOOT_INTERVAL = 2000; // 红色敌人射击间隔（2秒）
+const RED_ENEMY_HEALTH = 40; // 红色敌人血量
+const RED_ENEMY_SPEED = 0.2; // 红色敌人速度
+ const ENEMY_SPEED_RECOVERY_DURATION = 2000; // 敌人速度恢复时间（毫秒）
+const ENEMY_SPEED = 0.2; // 默认敌人速度
+
+// Boss 常量
+const BOSS_MAX_HEALTH = 600;
+const BOSS_SPEED = 0.1; // Boss 移动速度
+const BOSS_SKILL_COOLDOWN = 5000; // Boss 技能冷却时间（毫秒）
+const BOSS_BULLET_SPEED = 5; // Boss 子弹速度
+const BOSS_BULLET_COUNT = 8; // Boss 每次技能发射的子弹方向数
+const BOSS_BULLET_WAVES = 1; // Boss 技能连续发射的子弹波次（每轮只发射一波）
+const BOSS_SPAWN_TIME = 30000; // Boss 首次出现时间（毫秒）
+const BOSS_SPAWN_CHANCE = 0.3; // Boss 每次出现概率
+
+// 爆炸效果常量
+const EXPLOSION_DURATION = 30; // 爆炸动画持续帧数（增加持续时间）
+const EXPLOSION_MAX_RADIUS = 35; // 爆炸最大半径（增大爆炸范围）
+const EXPLOSION_PARTICLES = 8; // 爆炸粒子数量
+
+// 敌人生成常量
+const PURPLE_ENEMY_SPAWN_INTERVAL = 30000; // 30秒
+const PURPLE_ENEMY_SPAWN_CHANCE = 0.5; // 50%概率
+const RED_ENEMY_SPAWN_INTERVAL = 10000; // 10秒
+const RED_ENEMY_SPAWN_CHANCE = 0.7; // 70%概率
+
+// 地雷技能常量
+const MINE_EXPLOSION_RANGE = 100;
+const MINE_DAMAGE = 60; // 增强地雷伤害
+// 地雷技能冷却时间常量已在前面定义,这里删除重复声明
+const MINE_COUNTDOWN = 3000; // 3秒倒计时
+
+// 旋转射击技能常量 // 10秒持续时间
+// 旋转射击冷却时间已在前面定义,这里删除重复声明
+const ROTATE_SHOOT_INTERVAL = 40; // 0.2秒发射一次
+const ROTATE_SHOOT_DAMAGE = 20; // 子弹伤害
+const ROTATE_SHOOT_SPEED = 8; // 子弹速度
+const ROTATE_SHOOT_DURATION = 10000; // 10秒持续时间
+const ROTATE_SHOOT_RADIUS = 5; // 子弹半径，使其变小
+
+// 敌人状态常量
+const ENEMY_STUN_DURATION = 400; // 敌人停止移动0.1秒
+const ENEMY_TICK_DAMAGE_INTERVAL = 50; // 每0.05秒扣血
+const ENEMY_TICK_DAMAGE_AMOUNT = 3; // 每次扣血3点
+
+// 手雷技能常量
+const GRENADE_DAMAGE = 70; // 手雷伤害
+const GRENADE_EXPLOSION_RADIUS = 70; // 手雷爆炸范围
+
+// 引力炸弹技能常量
+const GRAVITY_BOMB_COOLDOWN = 15000; // 引力炸弹冷却时间 (15秒)
+const GRAVITY_BOMB_DURATION = 3000; // 引力炸弹持续时间 (3秒)
+const GRAVITY_BOMB_ATTRACT_RADIUS = 125; // 吸引范围
+const GRAVITY_BOMB_EXPLOSION_RADIUS = 150; // 爆炸范围
+const GRAVITY_BOMB_DAMAGE = 100; // 爆炸伤害
+const GRAVITY_BOMB_SLOW_PERCENTAGE = 0.9; // 减速90%
+const GRAVITY_BOMB_BLEED_PERCENTAGE = 0.7; // 持续扣血70%
+const GRAVITY_BOMB_MAX_CHARGES = 10; // 最大充能次数
+const GRAVITY_BOMB_CHARGE_INTERVAL = 100; // 每次点击空格的间隔，用于充能
+
+// 技能禁用状态
+const SKILL_DISABLED_STATUS = '禁用中';
+// 瞬间范围攻击常量 (Player 1)
+const AREA_ATTACK_RADIUS = 100; // 范围攻击半径
+const AREA_ATTACK_DAMAGE = 15; // 范围攻击伤害
+const AREA_ATTACK_COOLDOWN = 1000; // 范围攻击冷却时间（毫秒）
+
+// 手雷冷却时间已在前面定义,这里删除重复声明
+const GRENADE_MIN_FLIGHT_TIME = 400; // 手雷最小飞行时间0.1秒
+const GRENADE_MAX_FLIGHT_TIME = 700; // 手雷最大飞行时间1秒
+
+// 决赛圈相关常量
+const FINAL_CIRCLE_SHRINK_SPEED = 0.5; // 决赛圈缩小速度（每帧缩小0.5像素）
+const FINAL_CIRCLE_DAMAGE = 5; // 决赛圈伤害
+const FINAL_CIRCLE_DAMAGE_INTERVAL = 1000; // 决赛圈伤害间隔（毫秒）
+const PVP_DAMAGE = 10; // 玩家互相攻击伤害
+const FINAL_CIRCLE_MIN_RADIUS = 80; // 决赛圈最小半径（稍微小一点增加紧张感）
+// 获取画布和上下文
+
+
+
+function init(difficulty, mode) {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    // const ROTATE_SHOOT_RADIUS = canvas.width / 100; // 子弹半径
+    // 根据难度调整游戏参数
+    let currentPurpleEnemyHealth = PURPLE_ENEMY_HEALTH;
+    let currentRedEnemyHealth = RED_ENEMY_HEALTH;
+    let currentPurpleEnemySpeed = PURPLE_ENEMY_SPEED;
+    let currentRedEnemySpeed = RED_ENEMY_SPEED;
+    let currentPurpleEnemySpawnInterval = PURPLE_ENEMY_SPAWN_INTERVAL;
+    let currentRedEnemySpawnInterval = RED_ENEMY_SPAWN_INTERVAL;
+    let currentPlayerMaxHealth = PLAYER_MAX_HEALTH;
+    let currentPlayerAttackCooldown = PLAYER_ATTACK_COOLDOWN;
+    let currentGrenadeCooldown = GRENADE_COOLDOWN;
+    let currentMineCooldown = MINE_COOLDOWN;
+    let currentRotateShootCooldown = ROTATE_SHOOT_COOLDOWN;
+    let initialRedEnemies = 5; // 默认初始红色敌人数量
+    let initialPurpleEnemies = 5; // 默认初始紫色敌人数量
+
+    if (mode === 'multi') {
+        initialRedEnemies = 10; // 双人模式下10个红色敌人
+        initialPurpleEnemies = 5; // 双人模式下5个紫色敌人
+        player2 = {
+            x: canvas.width / 2 + 100, // 玩家2初始位置
+            y: canvas.height / 2,
+            width: 30,
+            height: 30,
+            color: '#FFD700', // 玩家2颜色
+            health: currentPlayerMaxHealth,
+            speed: PLAYER_SPEED,
+            isAttacking: false,
+            attackStartTime: 0,
+            attackEndTime: 0,
+            canMove: true,
+            canAttack: true,
+            moveUp: false,
+            moveDown: false,
+            moveLeft: false,
+            moveRight: false,
+            cnt: 0,
+            rotationAngle: 0,
+            canPlaceMine: true,
+            lastMinePlaced: 0,
+            isRotateShooting: false,
+            rotateShootStartTime: 0,
+            rotateShootEndTime: 0,
+            lastBulletTime: 0,
+            canThrowGrenade: true,
+            lastGrenadeThrowTime: 0,
+            canUseRotateShoot: true,
+            rotateShootCharges: 0,
+            lastRotateShootChargeTime: 0,
+            isChargingRotateShoot: false,
+            attackCooldown: currentPlayerAttackCooldown, // 添加攻击冷却时间
+            canAreaAttack: true, // 添加范围攻击能力
+            lastAreaAttackTime: 0, // 添加上次范围攻击时间
+            trail: [] // 玩家2移动轨迹
+        };
+    }
+
+    switch (difficulty) {
+        case 'easy':
+            currentPurpleEnemyHealth = 60;
+            currentRedEnemyHealth = 30;
+            currentPurpleEnemySpeed = 0.03;
+            currentRedEnemySpeed = 0.2;
+            currentPurpleEnemySpawnInterval = 40000;
+            currentRedEnemySpawnInterval = 15000;
+            currentPlayerMaxHealth = 120;
+            currentPlayerAttackCooldown = 300; // 简单难度攻击冷却时间
+            currentGrenadeCooldown = 3000; // 简单难度手雷冷却时间
+            currentMineCooldown = 3000; // 简单难度地雷冷却时间
+            currentRotateShootCooldown = 5000; // 简单难度旋转射击冷却时间
+            initialRedEnemies = 3; // 简单难度初始红色敌人数量
+            initialPurpleEnemies = 2; // 简单难度初始紫色敌人数量
+            break;
+        case 'normal':
+            // 默认值，无需修改
+            break;
+        case 'hard':
+            currentPurpleEnemyHealth = 100;
+            currentRedEnemyHealth = 60;
+            currentPurpleEnemySpeed = 0.07;
+            currentRedEnemySpeed = 0.6;
+            currentPurpleEnemySpawnInterval = 20000;
+            currentRedEnemySpawnInterval = 8000;
+            currentPlayerMaxHealth = 80;
+            currentPlayerAttackCooldown = 100; // 困难难度攻击冷却时间
+            currentGrenadeCooldown = 1000; // 困难难度手雷冷却时间
+            currentMineCooldown = 1000; // 困难难度地雷冷却时间
+            currentRotateShootCooldown = 2000; // 困难难度旋转射击冷却时间
+            initialRedEnemies = 7; // 困难难度初始红色敌人数量
+            initialPurpleEnemies = 3; // 困难难度初始紫色敌人数量
+            break;
+        case 'hell':
+            currentPurpleEnemyHealth = 120;
+            currentRedEnemyHealth = 80;
+            currentPurpleEnemySpeed = 0.09;
+            currentRedEnemySpeed = 0.8;
+            currentPurpleEnemySpawnInterval = 15000;
+            currentRedEnemySpawnInterval = 5000;
+            currentPlayerMaxHealth = 60;
+            currentPlayerAttackCooldown = 50; // 地狱难度攻击冷却时间
+            currentGrenadeCooldown = 500; // 地狱难度手雷冷却时间
+            currentMineCooldown = 500; // 地狱难度地雷冷却时间
+            currentRotateShootCooldown = 1000; // 地狱难度旋转射击冷却时间
+            initialRedEnemies = 10; // 地狱难度初始红色敌人数量
+            initialPurpleEnemies = 5; // 地狱难度初始紫色敌人数量
+            break;
+    }
+
+    // 更新玩家初始血量
+    player.health = currentPlayerMaxHealth;
+    player.maxHealth = currentPlayerMaxHealth;
+    
+    // 更新玩家二的血量（如果存在）
+    if (player2) {
+        player2.health = currentPlayerMaxHealth;
+        player2.maxHealth = currentPlayerMaxHealth;
+    }
+
+// 初始化游戏
+// There should be only ONE init function
+
+    // 更新敌人生成逻辑以使用调整后的参数
+    // 假设 generateEnemy 函数会使用这些全局或可访问的常量
+    // 如果 generateEnemy 内部有硬编码的常量，需要修改 generateEnemy 函数
+
+    // 示例：调整敌人生成
+    // 这里的逻辑需要根据实际的敌人生成方式进行调整
+    // 如果敌人是循环生成的，需要修改生成间隔的变量
+    // 如果是初始生成，则在下面生成时使用调整后的血量和速度
+
+    // 玩家对象初始化 (确保在难度调整后)
+    player.x = canvas.width / 2 - 25;
+    player.y = canvas.height / 2 - 25;
+    player.width = 50;
+    player.height = 50;
+    player.color = 'blue';
+    player.health = currentPlayerMaxHealth;
+    player.speed = PLAYER_SPEED;
+    player.canMove = true; // 确保 canMove 属性被初始化
+    player.isAttacking = false;
+    player.attackEndTime = 0;
+    player.canAttack = true;
+    player.rotationAngle = 0; // 初始化旋转角度
+    player.attackCooldown = currentPlayerAttackCooldown; // 玩家攻击冷却时间
+    player.lastGrenadeThrowTime = 0;
+    player.canThrowGrenade = true;
+    player.grenadeCooldown = currentGrenadeCooldown; // 手雷冷却时间
+    player.lastMinePlacementTime = 0;
+    player.canPlaceMine = true;
+    player.mineCooldown = currentMineCooldown; // 地雷冷却时间
+    player.lastRotateShootTime = 0;
+    player.canUseRotateShoot = true;
+    player.rotateShootCooldown = currentRotateShootCooldown; // 旋转射击冷却时间
+    player.moveUp = false;
+    player.moveDown = false;
+    player.moveLeft = false;
+    player.moveRight = false;
+    player.trail = []; // 玩家移动轨迹
+
+    // 清空敌人和子弹
+    enemies = [];
+    bullets = [];
+    purpleEnemyBullets = [];
+    redEnemyBullets = [];
+    grenades = [];
+    mines = [];
+    explosions = [];
+
+    // 初始生成敌人 (使用调整后的参数)
+    if (mode === 'multi') {
+        // 双人模式下，任意多个红挂和瓷怪冲向玩家一，其他冲向玩家二
+        // 假设一半冲向玩家一，一半冲向玩家二
+        const redToPlayer1 = Math.ceil(initialRedEnemies / 2);
+        const purpleToPlayer1 = Math.ceil(initialPurpleEnemies / 2);
+
+        for (let i = 0; i < redToPlayer1; i++) {
+            generateEnemy('red', player);
+        }
+        for (let i = 0; i < initialRedEnemies - redToPlayer1; i++) {
+            generateEnemy('red', player2);
+        }
+
+        for (let i = 0; i < purpleToPlayer1; i++) {
+            generateEnemy('purple', player);
+        }
+        for (let i = 0; i < initialPurpleEnemies - purpleToPlayer1; i++) {
+            generateEnemy('purple', player2);
+        }
+    } else {
+        for (let i = 0; i < initialRedEnemies; i++) {
+            generateEnemy('red');
+        }
+        for (let i = 0; i < initialPurpleEnemies; i++) {
+            generateEnemy('purple');
+        }
+    }
+
+    // ... 保持其他不变的初始化逻辑 ...
+
+    // 根据设备类型初始化控制方式
+    if (isPC) {
+        // 电脑端使用键盘控制 - 移除重复的事件监听器，使用全局的handleKeyDown
+    }
+    // 设置键盘事件监听
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    
+    // 设置鼠标点击监听
+    canvas.addEventListener('click', handleMouseClick);
+    
+    // 加载README内容
+}
+
+
+// 鼠标点击事件处理
+function handleMouseClick(e) {
+    // 获取画布的边界矩形
+    const rect = canvas.getBoundingClientRect();
+    
+    // 计算鼠标在画布中的实际坐标
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // 在双人模式下，根据按键状态判断是哪个玩家进行范围攻击
+    if (player2) {
+        // 双人模式：检查是否按住了玩家2的控制键
+        if (e.shiftKey) {
+            // 按住Shift键+鼠标点击 = 玩家2以自身为中心的范围攻击
+            activateAreaAttack(player2);
+        } else {
+            // 普通鼠标点击 = 玩家1以自身为中心的范围攻击
+            activateAreaAttack(player);
+        }
+    } else {
+        // 单人模式：鼠标点击控制玩家1定点手雷抛射（保持原有功能）
+        handlePlayerGrenade(player, mouseX, mouseY);
+    }
+}
+
+// 键盘按下事件处理
+function handleKeyDown(e) {
+    console.log('Key pressed:', e.key); // 添加日志
+    switch(e.key) {
+        case 'ArrowUp':
+            if (player2) {
+                player2.moveUp = true;
+            } else {
+                // 单人模式下，方向键控制玩家1
+                player.moveUp = true;
+            }
+            break;
+        case 'ArrowDown':
+            if (player2) {
+                player2.moveDown = true;
+            } else {
+                // 单人模式下，方向键控制玩家1
+                player.moveDown = true;
+            }
+            break;
+        case 'ArrowLeft':
+            if (player2) {
+                player2.moveLeft = true;
+            } else {
+                // 单人模式下，方向键控制玩家1
+                player.moveLeft = true;
+            }
+            break;
+        case 'ArrowRight':
+            if (player2) {
+                player2.moveRight = true;
+            } else {
+                // 单人模式下，方向键控制玩家1
+                player.moveRight = true;
+            }
+            break;
+        case 'f': // 玩家1地雷 (按照README)
+            handlePlayerMine(player);
+            break;
+        case 'g': // 玩家1旋转射击 (按照README)
+            activateRotateShoot(player);
+            break;
+        case 'd': // 玩家1手雷 (双人模式，按照README)
+            if (player2) {
+                // 双人模式下，D键为玩家1投掷手雷
+                handlePlayerGrenade(player);
+            } else {
+                // 单人模式下，D键为向右移动
+                player.moveRight = true;
+            }
+            break;
+        case 'e': // 玩家1攻击 (保留原有功能)
+            if (player.canAttack) {
+                player.isAttacking = true;
+                player.attackTimer = 10; // 攻击动画持续时间
+                player.canAttack = false;
+                setTimeout(() => {
+                    player.canAttack = true;
+                }, player.attackCooldown);
+            }
+            break;
+        case 'r': // 玩家1瞬间范围攻击 (保留原有功能)
+            if (player.canAreaAttack) {
+                activateAreaAttack(player);
+            }
+            break;
+        case 't': // 玩家1旋转射击 (保留原有功能)
+            activateRotateShoot(player);
+            break;
+        // Player 1 controls (WASD键在单人和双人模式下都有效)
+        case 'w':
+            // WASD控制玩家1移动（单人和双人模式都可用）
+            player.moveUp = true;
+            break;
+        case 's':
+            // WASD控制玩家1移动（单人和双人模式都可用）
+            player.moveDown = true;
+            break;
+        case 'a':
+            // WASD控制玩家1移动（单人和双人模式都可用）
+            player.moveLeft = true;
+            break;
+        // 双人模式下玩家1的移动键位 (按照README)
+        case 'i': // 玩家1向上移动 (双人模式)
+            if (player2) {
+                player.moveUp = true;
+            }
+            break;
+        case 'k': // 玩家1向下移动 (双人模式)
+            if (player2) {
+                player.moveDown = true;
+            }
+            break;
+        case 'j': // 玩家1向左移动 (双人模式)
+            if (player2) {
+                player.moveLeft = true;
+            }
+            break;
+        case 'l': // 玩家1向右移动 (双人模式)
+            if (player2) {
+                player.moveRight = true;
+            }
+            break;
+        case ' ': // 玩家2旋转射击（按照README）
+            if (player2) {
+                activateRotateShoot(player2);
+            } else {
+                // 单人模式下，空格键也能控制玩家1旋转射击
+                activateRotateShoot(player);
+            }
+            break;
+        case "'": // 玩家2地雷（按照README）
+            if (player2) {
+                handlePlayerMine(player2);
+            } else {
+                // 单人模式下，'键也能控制玩家1放置地雷
+                handlePlayerMine(player);
+            }
+            break;
+        case ';': // 玩家2手雷（按照README）
+            if (player2) {
+                handlePlayerGrenade(player2);
+            } 
+            break;
+        case '/': // 玩家2攻击 (保留原有功能)
+            if (player2 && player2.canAttack) {
+                player2.isAttacking = true;
+                player2.attackTimer = 10;
+                player2.canAttack = false;
+                setTimeout(() => {
+                    player2.canAttack = true;
+                }, player2.attackCooldown);
+            } else if (player.canAttack) {
+                // 单人模式下，/键也能控制玩家1攻击
+                player.isAttacking = true;
+                player.attackTimer = 10;
+                player.canAttack = false;
+                setTimeout(() => {
+                    player.canAttack = true;
+                }, player.attackCooldown);
+            }
+            break;
+        case '.': // 玩家2手雷 (保留原有功能)
+            if (player2) {
+                handlePlayerGrenade(player2);
+            } else {
+                // 单人模式下，.键也能控制玩家1投掷手雷
+                handlePlayerGrenade(player);
+            }
+            break;
+        case ',': // 玩家2瞬间范围攻击 (保留原有功能)
+            if (player2 && player2.canAreaAttack) {
+                activateAreaAttack(player2);
+            } else if (player.canAreaAttack) {
+                // 单人模式下，,键也能控制玩家1瞬间范围攻击
+                activateAreaAttack(player);
+            }
+            break;
+
+        case 'Escape': // 返回大厅
+            if (gameWinner) {
+                returnToLobby();
+            }
+            break;
+    }
+}
+
+function handleKeyUp(e) {
+    switch(e.key) {
+        case 'ArrowUp':
+            if (player2) {
+                player2.moveUp = false;
+            } else {
+                // 单人模式下，方向键控制玩家1
+                player.moveUp = false;
+            }
+            break;
+        case 'ArrowDown':
+            if (player2) {
+                player2.moveDown = false;
+            } else {
+                // 单人模式下，方向键控制玩家1
+                player.moveDown = false;
+            }
+            break;
+        case 'ArrowLeft':
+            if (player2) {
+                player2.moveLeft = false;
+            } else {
+                // 单人模式下，方向键控制玩家1
+                player.moveLeft = false;
+            }
+            break;
+        case 'ArrowRight':
+            if (player2) {
+                player2.moveRight = false;
+            } else {
+                // 单人模式下，方向键控制玩家1
+                player.moveRight = false;
+            }
+            break;
+        case 'w':
+            // WASD控制玩家1移动（单人和双人模式都可用）
+            player.moveUp = false;
+            break;
+        case 's':
+            // WASD控制玩家1移动（单人和双人模式都可用）
+            player.moveDown = false;
+            break;
+        case 'a':
+            // WASD控制玩家1移动（单人和双人模式都可用）
+            player.moveLeft = false;
+            break;
+        case 'd':
+            // 在双人模式下，D键用于手雷，不用于移动
+            if (!player2) {
+                player.moveRight = false;
+            }
+            break;
+        // 双人模式下玩家1的移动键位 (按照README)
+        case 'i': // 玩家1向上移动 (双人模式)
+            if (player2) {
+                player.moveUp = false;
+            }
+            break;
+        case 'k': // 玩家1向下移动 (双人模式)
+            if (player2) {
+                player.moveDown = false;
+            }
+            break;
+        case 'j': // 玩家1向左移动 (双人模式)
+            if (player2) {
+                player.moveLeft = false;
+            }
+            break;
+        case 'l': // 玩家1向右移动 (双人模式)
+            if (player2) {
+                player.moveRight = false;
+            }
+            break;
+    }
+}
+
+function updatePlayerPosition(p) {
+    if (p.canMove) {
+        const oldX = p.x;
+        const oldY = p.y;
+        
+        if (p.moveUp) p.y -= p.speed;
+        if (p.moveDown) p.y += p.speed;
+        if (p.moveLeft) p.x -= p.speed;
+        if (p.moveRight) p.x += p.speed;
+
+        // 边界检查
+        p.x = Math.max(0, Math.min(canvas.width - p.width, p.x));
+        p.y = Math.max(0, Math.min(canvas.height - p.height, p.y));
+        
+        // 如果玩家位置发生了变化，记录轨迹
+        if (oldX !== p.x || oldY !== p.y) {
+            p.trail.push({
+                x: oldX + p.width / 2,
+                y: oldY + p.height / 2,
+                time: Date.now(),
+                alpha: 1.0
+            });
+            
+            // 限制轨迹长度，保持最近的20个位置
+            if (p.trail.length > 20) {
+                p.trail.shift();
+            }
+        }
+        
+        // 更新轨迹透明度
+        const currentTime = Date.now();
+        p.trail = p.trail.filter(point => {
+            const age = currentTime - point.time;
+            point.alpha = Math.max(0, 1 - age / 1000); // 1秒内完全消失
+            return point.alpha > 0;
+        });
+    }
+}
+
+function handlePlayerGrenade(p, targetX, targetY) {
+    const currentTime = Date.now();
+    if (!p.canThrowGrenade) {
+        const remainingCooldown = Math.ceil((p.lastGrenadeThrowTime + GRENADE_COOLDOWN - currentTime) / 1000);
+        if (remainingCooldown > 0) {
+            showCooldownMessage('手雷', remainingCooldown);
+        }
+        return;
+    }
+
+    // 如果没有提供目标坐标，使用玩家附近的随机位置（用于键盘控制）
+    if (targetX === undefined || targetY === undefined) {
+        targetX = p.x + p.width / 2 + (Math.random() - 0.5) * 200;
+        targetY = p.y + p.height / 2 + (Math.random() - 0.5) * 200;
+    }
+
+    const flightTime = GRENADE_MIN_FLIGHT_TIME + Math.random() * (GRENADE_MAX_FLIGHT_TIME - GRENADE_MIN_FLIGHT_TIME);
+
+    const grenade = {
+        x: p.x + p.width / 2,
+        y: p.y + p.height / 2,
+        targetX: targetX,
+        targetY: targetY,
+        startTime: currentTime,
+        flightTime: flightTime,
+        radius: 10,
+        color: '#3498db',
+        damage: GRENADE_DAMAGE,
+        explosionRadius: GRENADE_EXPLOSION_RADIUS,
+        hasExploded: false,
+        owner: p
+    };
+    grenades.push(grenade);
+
+    p.canThrowGrenade = false;
+    p.lastGrenadeThrowTime = currentTime;
+
+    setTimeout(() => {
+        p.canThrowGrenade = true;
+    }, GRENADE_COOLDOWN);
+}
+
+function handlePlayerMine(p) {
+    const currentTime = Date.now();
+    if (!p.canPlaceMine) {
+        const remainingCooldown = Math.ceil((p.lastMinePlaced + MINE_COOLDOWN - currentTime) / 1000);
+        if (remainingCooldown > 0) {
+            showCooldownMessage('地雷', remainingCooldown);
+        }
+        return;
+    }
+
+    const mine = {
+        x: p.x + p.width / 2 - 15,
+        y: p.y + p.height / 2 - 15,
+        width: 30,
+        height: 30,
+        radius: 15,
+        color: '#f1c40f',
+        damage: MINE_DAMAGE,
+        explosionRadius: MINE_EXPLOSION_RANGE,
+        placedTime: currentTime,
+        explodeTime: currentTime + 3000, // 3秒后爆炸
+        hasExploded: false,
+        explosionTimer: 0,
+        isExploding: false,
+        damageApplied: false, // 新增属性，标记伤害是否已应用
+        owner: p // 添加owner属性，标识地雷的所有者
+    };
+    mines.push(mine);
+
+    p.canPlaceMine = false;
+    p.lastMinePlaced = currentTime;
+
+    setTimeout(() => {
+        p.canPlaceMine = true;
+    }, MINE_COOLDOWN);
+}
+
+function activateAreaAttack(p) {
+    const currentTime = Date.now();
+    if (!p.canAreaAttack) {
+        const remainingCooldown = Math.ceil((p.lastAreaAttackTime + AREA_ATTACK_COOLDOWN - currentTime) / 1000);
+        if (remainingCooldown > 0) {
+            showCooldownMessage('瞬间范围攻击', remainingCooldown);
+        }
+        return;
+    }
+
+    // 执行范围攻击
+    enemies.forEach(enemy => {
+        if (!enemy.isDead) {
+            const dx = enemy.x + enemy.width / 2 - p.x - p.width / 2;
+            const dy = enemy.y + enemy.height / 2 - p.y - p.height / 2;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= AREA_ATTACK_RADIUS) {
+                enemy.health -= AREA_ATTACK_DAMAGE;
+                if (enemy.health <= 0) {
+                    enemy.isDead = true;
+                }
+            }
+        }
+    });
+
+    // 对Boss造成范围攻击伤害
+    if (boss && !boss.isDead) {
+        const dx = boss.x + boss.width / 2 - p.x - p.width / 2;
+        const dy = boss.y + boss.height / 2 - p.y - p.height / 2;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance <= AREA_ATTACK_RADIUS) {
+            boss.health -= AREA_ATTACK_DAMAGE;
+            if (boss.health <= 0) {
+                boss.isDead = true;
+            }
+        }
+    }
+
+    // 创建一个临时的爆炸效果来表示范围攻击
+    createExplosion(p.x + p.width / 2, p.y + p.height / 2, AREA_ATTACK_RADIUS, 0, p); // 伤害为0，因为伤害已直接计算
+
+    p.canAreaAttack = false;
+    p.lastAreaAttackTime = currentTime;
+
+    setTimeout(() => {
+        p.canAreaAttack = true;
+    }, AREA_ATTACK_COOLDOWN);
+}
+
+// 定点范围攻击函数（用于鼠标点击）
+
+
+function handlePlayerRotateShoot(p) {
+    const currentTime = Date.now();
+    if (!p.canUseRotateShoot) {
+        const remainingCooldown = Math.ceil((p.lastRotateShootTime + ROTATE_SHOOT_COOLDOWN - currentTime) / 1000);
+        if (remainingCooldown > 0) {
+            showCooldownMessage('旋转射击', remainingCooldown);
+        }
+        return;
+    }
+
+    p.isRotateShooting = true;
+    p.rotateShootStartTime = currentTime;
+    p.rotateShootEndTime = currentTime + ROTATE_SHOOT_DURATION;
+    p.lastBulletTime = currentTime;
+
+    p.canUseRotateShoot = false;
+    p.lastRotateShootTime = currentTime;
+
+    setTimeout(() => {
+        p.canUseRotateShoot = true;
+    }, ROTATE_SHOOT_COOLDOWN);
+}
+
+// 更新敌人位置（简单的AI，向玩家移动）
+function updateEnemies() {
+    
+    enemies.forEach(enemy => {
+        if (!enemy.isDead) {
+            // 简单AI：向玩家移动
+            const currentTime = Date.now();
+
+            // 处理敌人眩晕状态
+            if (enemy.isStunned) {
+                if (currentTime - enemy.stunStartTime >= ENEMY_STUN_DURATION) {
+                    enemy.isStunned = false; // 眩晕结束
+                }
+            }
+
+            // 恢复敌人速度
+            if (enemy.originalSpeed && enemy.speedReducedTime && (currentTime - enemy.speedReducedTime >= ENEMY_SPEED_RECOVERY_DURATION)) {
+                enemy.speed = enemy.originalSpeed;
+                enemy.originalSpeed = null; // 清除原始速度记录
+                enemy.speedReducedTime = null;
+            }
+
+            if (!enemy.isStunned) {
+                const targetPlayer = enemy.targetPlayer; // 获取敌人的目标玩家
+                const dx = targetPlayer.x - enemy.x;
+                const dy = targetPlayer.y - enemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+    
+                if (distance > 0) {
+                    enemy.x += (dx / distance) * enemy.speed;
+                    enemy.y += (dy / distance) * enemy.speed;
+                }
+            }
+
+            // 敌人射击逻辑
+            // 游戏开始5秒内敌人不能射击
+            const gameElapsedTime = currentTime - gameStartTime;
+            if (enemy.type === 'purple') {
+                if (gameElapsedTime < 5000) {
+                    // 在冷却期内，显示调试信息
+                    const remainingCooldown = Math.ceil((5000 - gameElapsedTime) / 1000);
+                    if (Math.floor(gameElapsedTime / 1000) !== Math.floor((gameElapsedTime - 16) / 1000)) {
+                        console.log(`紫色敌人冷却中，剩余 ${remainingCooldown} 秒`);
+                    }
+                } else if (currentTime - enemy.lastShootTime >= PURPLE_ENEMY_SHOOT_INTERVAL) {
+                    // 选择最近的玩家作为目标
+                    let targetPlayer = player;
+                    let minDistance = Math.sqrt(Math.pow(player.x - enemy.x, 2) + Math.pow(player.y - enemy.y, 2));
+                    
+                    if (player2) {
+                        const distanceToPlayer2 = Math.sqrt(Math.pow(player2.x - enemy.x, 2) + Math.pow(player2.y - enemy.y, 2));
+                        if (distanceToPlayer2 < minDistance) {
+                            targetPlayer = player2;
+                            minDistance = distanceToPlayer2;
+                        }
+                    }
+
+                    // 计算射击方向
+                    const shootDx = targetPlayer.x - enemy.x;
+                    const shootDy = targetPlayer.y - enemy.y;
+                    const shootDistance = Math.sqrt(shootDx * shootDx + shootDy * shootDy);
+
+                    if (shootDistance > 0) {
+                        // 创建子弹
+                        const bullet = {
+                            x: enemy.x + enemy.width / 2,
+                            y: enemy.y + enemy.height / 2,
+                            vx: (shootDx / shootDistance) * PURPLE_ENEMY_BULLET_SPEED,
+                            vy: (shootDy / shootDistance) * PURPLE_ENEMY_BULLET_SPEED,
+                            radius: 8,
+                            damage: PURPLE_ENEMY_BULLET_DAMAGE,
+                            color: '#ff00ff' // 亮紫色子弹，更容易看见
+                        };
+                        purpleEnemyBullets.push(bullet);
+                        enemy.lastShootTime = currentTime;
+                        console.log('紫色敌人射击！子弹数量:', purpleEnemyBullets.length);
+                    }
+                }
+            } else if (enemy.type === 'red') {
+                // 红色敌人射击逻辑
+                if (gameElapsedTime >= 3000 && currentTime - enemy.lastShootTime >= RED_ENEMY_SHOOT_INTERVAL) {
+                    // 选择最近的玩家作为目标
+                    let targetPlayer = player;
+                    let minDistance = Math.sqrt(Math.pow(player.x - enemy.x, 2) + Math.pow(player.y - enemy.y, 2));
+                    
+                    if (player2) {
+                        const distanceToPlayer2 = Math.sqrt(Math.pow(player2.x - enemy.x, 2) + Math.pow(player2.y - enemy.y, 2));
+                        if (distanceToPlayer2 < minDistance) {
+                            targetPlayer = player2;
+                            minDistance = distanceToPlayer2;
+                        }
+                    }
+
+                    // 计算射击方向
+                    const shootDx = targetPlayer.x - enemy.x;
+                    const shootDy = targetPlayer.y - enemy.y;
+                    const shootDistance = Math.sqrt(shootDx * shootDx + shootDy * shootDy);
+
+                    if (shootDistance > 0) {
+                        // 创建红色敌人子弹
+                        const bullet = {
+                            x: enemy.x + enemy.width / 2,
+                            y: enemy.y + enemy.height / 2,
+                            vx: (shootDx / shootDistance) * 4, // 红色敌人子弹速度稍快
+                            vy: (shootDy / shootDistance) * 4,
+                            radius: 6,
+                            damage: 3, // 红色敌人子弹伤害
+                            color: '#ff4444' // 亮红色子弹
+                        };
+                        redEnemyBullets.push(bullet);
+                        enemy.lastShootTime = currentTime;
+                        console.log('红色敌人射击！子弹数量:', redEnemyBullets.length);
+                    }
+                }
+            }
+            
+            // 检测与玩家的碰撞
+            if (checkCollision(player, enemy)) {
+                const currentTime = Date.now();
+                // 敌人每0.3秒攻击一次
+                if (!enemy.lastAttackTime || currentTime - enemy.lastAttackTime >= 300) {
+                    enemy.lastAttackTime = currentTime;
+                    player.health -= 10; // 敌人攻击玩家造成伤害
+                    
+                    // 敌人攻击时背景闪烁
+                    document.body.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+                    setTimeout(() => {
+                        document.body.style.backgroundColor = 'black';
+                    }, 100);
+                }
+                
+                // 玩家死亡检查
+                if (player.health <= 0) {
+                    gameRunning = false;
+                }
+            }
+            // 检测与玩家2的碰撞
+            if (player2 && checkCollision(player2, enemy)) {
+                const currentTime = Date.now();
+                // 敌人每0.3秒攻击一次
+                if (!enemy.lastAttackTimeP2 || currentTime - enemy.lastAttackTimeP2 >= 300) {
+                    enemy.lastAttackTimeP2 = currentTime;
+                    player2.health -= 10; // 敌人攻击玩家2造成伤害
+                    
+                    // 敌人攻击时背景闪烁
+                    document.body.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+                    setTimeout(() => {
+                        document.body.style.backgroundColor = 'black';
+                    }, 100);
+                }
+                
+                // 玩家2死亡检查
+                if (player2.health <= 0) {
+                    // 玩家2死亡，游戏结束或玩家1胜利
+                    gameRunning = false;
+                }
+            }
+        }
+    });
+}
+
+// 更新紫色敌人子弹
+function updatePurpleEnemyBullets() {
+    for (let i = purpleEnemyBullets.length - 1; i >= 0; i--) {
+        const bullet = purpleEnemyBullets[i];
+        
+        // 更新子弹位置
+        bullet.x += bullet.vx;
+        bullet.y += bullet.vy;
+        
+        // 检查子弹是否超出边界
+        if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+            purpleEnemyBullets.splice(i, 1);
+            continue;
+        }
+        
+        // 检查与玩家1的碰撞
+        if (checkCircleRectCollision(bullet, player)) {
+            console.log('紫色子弹击中玩家1！伤害:', bullet.damage, '玩家血量:', player.health);
+            player.health -= bullet.damage; // 扣10滴血
+            purpleEnemyBullets.splice(i, 1);
+            
+            // 创建紫色爆炸效果
+            createPurpleExplosion(bullet.x, bullet.y, 25, 0, null);
+            console.log('创建紫色爆炸效果');
+            
+            // 背景闪烁效果
+            document.body.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+            setTimeout(() => {
+                document.body.style.backgroundColor = 'black';
+            }, 100);
+            
+            // 玩家死亡检查
+            if (player.health <= 0) {
+                gameRunning = false;
+            }
+            continue;
+        }
+        
+        // 检查与玩家2的碰撞
+        if (player2 && checkCircleRectCollision(bullet, player2)) {
+            console.log('紫色子弹击中玩家2！伤害:', bullet.damage, '玩家血量:', player2.health);
+            player2.health -= bullet.damage; // 扣10滴血
+            purpleEnemyBullets.splice(i, 1);
+            
+            // 创建紫色爆炸效果
+            createPurpleExplosion(bullet.x, bullet.y, 25, 0, null);
+            console.log('创建紫色爆炸效果');
+            
+            // 背景闪烁效果
+            document.body.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+            setTimeout(() => {
+                document.body.style.backgroundColor = 'black';
+            }, 100);
+            
+            // 玩家2死亡检查
+            if (player2.health <= 0) {
+                gameRunning = false;
+            }
+            continue;
+        }
+    }
+}
+
+// 更新红色敌人子弹
+function updateRedEnemyBullets() {
+    for (let i = redEnemyBullets.length - 1; i >= 0; i--) {
+        const bullet = redEnemyBullets[i];
+        
+        // 更新子弹位置
+        bullet.x += bullet.vx;
+        bullet.y += bullet.vy;
+        
+        // 检查子弹是否超出边界
+        if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+            redEnemyBullets.splice(i, 1);
+            continue;
+        }
+        
+        // 检查与玩家1的碰撞
+        if (checkCircleRectCollision(bullet, player)) {
+            console.log('红色子弹击中玩家1！伤害:', bullet.damage, '玩家血量:', player.health);
+            player.health -= bullet.damage; // 扣2滴血
+            redEnemyBullets.splice(i, 1);
+            
+            // 创建红色爆炸效果
+            createExplosion(bullet.x, bullet.y, 20, 0, null);
+            console.log('创建红色爆炸效果');
+            
+            // 背景闪烁效果
+            document.body.style.backgroundColor = 'rgba(255, 100, 100, 0.2)';
+            setTimeout(() => {
+                document.body.style.backgroundColor = 'black';
+            }, 80);
+            
+            // 玩家死亡检查
+            if (player.health <= 0) {
+                gameRunning = false;
+            }
+            continue;
+        }
+        
+        // 检查与玩家2的碰撞
+        if (player2 && checkCircleRectCollision(bullet, player2)) {
+            console.log('红色子弹击中玩家2！伤害:', bullet.damage, '玩家血量:', player2.health);
+            player2.health -= bullet.damage; // 扣2滴血
+            redEnemyBullets.splice(i, 1);
+            
+            // 创建红色爆炸效果
+            createExplosion(bullet.x, bullet.y, 20, 0, null);
+            console.log('创建红色爆炸效果');
+            
+            // 背景闪烁效果
+            document.body.style.backgroundColor = 'rgba(255, 100, 100, 0.2)';
+            setTimeout(() => {
+                document.body.style.backgroundColor = 'black';
+            }, 80);
+            
+            // 玩家2死亡检查
+            if (player2.health <= 0) {
+                gameRunning = false;
+            }
+            continue;
+        }
+    }
+}
+
+// 更新Boss状态
+function updateBoss() {
+    if (!boss || boss.isDead) return;
+
+    const currentTime = Date.now();
+
+    // 检查Boss血量，如果低于20%则加快速度
+    const healthPercentage = boss.health / boss.maxHealth;
+    let currentSpeed = boss.speed;
+    if (healthPercentage <= 0.2) {
+        // 血量低于20%时速度翻倍
+        if (!boss.originalSpeed) {
+            boss.originalSpeed = boss.speed;
+        }
+        currentSpeed = boss.originalSpeed * 2;
+    }
+
+    // Boss 移动 (简单地向玩家移动)
+    const dx = player.x - boss.x;
+    const dy = player.y - boss.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance > 0) {
+        boss.x += (dx / distance) * currentSpeed;
+        boss.y += (dy / distance) * currentSpeed;
+    }
+
+    // Boss与玩家1直接碰撞检测
+    if (checkCollision(player, boss)) {
+        // 连续扣血，每0.1秒扣1血
+        if (!player.lastBossTouchTime || currentTime - player.lastBossTouchTime >= 100) {
+            player.health -= 1;
+            player.lastBossTouchTime = currentTime;
+            
+            // 玩家死亡检查
+            if (player.health <= 0) {
+                gameRunning = false;
+            }
+        }
+    }
+
+    // Boss与玩家2直接碰撞检测
+    if (player2 && checkCollision(player2, boss)) {
+        // 连续扣血，每0.1秒扣1血
+        if (!player2.lastBossTouchTime || currentTime - player2.lastBossTouchTime >= 100) {
+            player2.health -= 1;
+            player2.lastBossTouchTime = currentTime;
+            
+            // 玩家死亡检查
+            if (player2.health <= 0) {
+                gameRunning = false;
+            }
+        }
+    }
+
+    // Boss 技能释放
+    if (currentTime - boss.lastSkillTime >= BOSS_SKILL_COOLDOWN) {
+        boss.shootSkill();
+        boss.lastSkillTime = currentTime;
+    }
+
+    // 更新Boss子弹
+    boss.bullets.forEach((bullet, index) => {
+        bullet.x += bullet.vx;
+        bullet.y += bullet.vy;
+
+        // 检查子弹是否超出边界
+        if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+            boss.bullets.splice(index, 1);
+            return;
+        }
+
+        // 检查Boss子弹与玩家1的碰撞
+        if (checkCollision(player, bullet)) {
+            player.health -= 45; // Boss子弹造成45点伤害
+            boss.bullets.splice(index, 1);
+
+            // 创建爆炸效果
+            createExplosion(bullet.x, bullet.y, 30, 45, player);
+
+            // 玩家减速至30%
+            if (!player.originalSpeed) {
+                player.originalSpeed = player.speed;
+            }
+            player.speed = player.originalSpeed * 0.3;
+            player.slowedByBoss = true;
+            player.slowEndTime = Date.now() + 10000; // 减速持续10秒
+
+            // 玩家死亡检查
+            if (player.health <= 0) {
+                gameRunning = false;
+            }
+            return;
+        }
+
+        // 检查Boss子弹与玩家2的碰撞
+        if (player2 && checkCollision(player2, bullet)) {
+            player2.health -= 45; // Boss子弹造成45点伤害
+            boss.bullets.splice(index, 1);
+
+            // 创建爆炸效果
+            createExplosion(bullet.x, bullet.y, 30, 45, player2);
+
+            // 玩家减速至30%
+            if (!player2.originalSpeed) {
+                player2.originalSpeed = player2.speed;
+            }
+            player2.speed = player2.originalSpeed * 0.3;
+            player2.slowedByBoss = true;
+            player2.slowEndTime = Date.now() + 10000; // 减速持续10秒
+
+            // 玩家死亡检查
+            if (player2.health <= 0) {
+                gameRunning = false;
+            }
+        }
+    });
+
+    // 检查Boss是否死亡
+    if (boss && boss.health <= 0) {
+        boss.isDead = true;
+        gameRunning = false; // Boss死亡，游戏结束
+        boss = null; // 清除Boss对象
+    }
+}
+
+
+
+
+// 更新攻击状态
+function updateAttackStatus() {
+    const currentTime = Date.now();
+    
+    // 检查攻击持续时间是否结束
+    if (player.isAttacking && currentTime >= player.attackEndTime) {
+        player.isAttacking = false;
+    }
+    
+    // 检查冷却时间是否结束
+    if (!player.canAttack && currentTime >= player.attackEndTime + ATTACK_COOLDOWN) {
+        player.canAttack = true;
+    }
+}
+
+// 攻击敌人和Boss - 现在是持续伤害
+function attackEnemies() {
+    // 玩家1攻击敌人
+    if (player.isAttacking) {
+        enemies.forEach(enemy => {
+            if (!enemy.isDead) {
+                // 计算与玩家1的距离
+                const dx = enemy.x - player.x;
+                const dy = enemy.y - player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+    
+                // 如果在攻击范围内
+                if (distance <= ATTACK_RANGE) {
+                    // 每帧造成少量伤害（持续伤害）
+                    enemy.health -= ATTACK_DAMAGE / 60; // 假设60FPS，每秒总伤害为ATTACK_DAMAGE
+                    
+                    // 创建爆炸效果（每隔几帧创建一次，避免过多爆炸）
+                    if (Math.random() < 0.1) { // 10%概率创建爆炸效果
+                        createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+                    }
+                    
+                    // 敌人死亡检查
+                    if (enemy.health <= 0) {
+                        enemy.isDead = true;
+                        // 敌人死亡时创建大爆炸
+                        createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+                    }
+                }
+            }
+        });
+
+        // 玩家1攻击Boss
+        if (boss && !boss.isDead) {
+            const dx = boss.x - player.x;
+            const dy = boss.y - player.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= ATTACK_RANGE) {
+                // 每帧造成少量伤害（持续伤害）
+                boss.health -= ATTACK_DAMAGE / 60; // 假设60FPS，每秒总伤害为ATTACK_DAMAGE
+                
+                // 创建爆炸效果（每隔几帧创建一次，避免过多爆炸）
+                if (Math.random() < 0.1) { // 10%概率创建爆炸效果
+                    createExplosion(boss.x + boss.width/2, boss.y + boss.height/2);
+                }
+                
+                // Boss死亡检查
+                if (boss.health <= 0) {
+                    boss.isDead = true;
+                    // Boss死亡时创建大爆炸
+                    createExplosion(boss.x + boss.width/2, boss.y + boss.height/2);
+                }
+            }
+        }
+    }
+    
+    // 玩家2攻击敌人
+    if (player2 && player2.isAttacking) {
+        enemies.forEach(enemy => {
+            if (!enemy.isDead) {
+                // 计算与玩家2的距离
+                const dx = enemy.x - player2.x;
+                const dy = enemy.y - player2.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+    
+                // 如果在攻击范围内
+                if (distance <= ATTACK_RANGE) {
+                    // 每帧造成少量伤害（持续伤害）
+                    enemy.health -= ATTACK_DAMAGE / 60; // 假设60FPS，每秒总伤害为ATTACK_DAMAGE
+                    
+                    // 创建爆炸效果（每隔几帧创建一次，避免过多爆炸）
+                    if (Math.random() < 0.1) { // 10%概率创建爆炸效果
+                        createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+                    }
+                    
+                    // 敌人死亡检查
+                    if (enemy.health <= 0) {
+                        enemy.isDead = true;
+                        // 敌人死亡时创建大爆炸
+                        createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2);
+                    }
+                }
+            }
+        });
+
+        // 玩家2攻击Boss
+        if (boss && !boss.isDead) {
+            const dx = boss.x - player2.x;
+            const dy = boss.y - player2.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= ATTACK_RANGE) {
+                // 每帧造成少量伤害（持续伤害）
+                boss.health -= ATTACK_DAMAGE / 60; // 假设60FPS，每秒总伤害为ATTACK_DAMAGE
+                
+                // 创建爆炸效果（每隔几帧创建一次，避免过多爆炸）
+                if (Math.random() < 0.1) { // 10%概率创建爆炸效果
+                    createExplosion(boss.x + boss.width/2, boss.y + boss.height/2);
+                }
+                
+                // Boss死亡检查
+                if (boss.health <= 0) {
+                    boss.isDead = true;
+                    // Boss死亡时创建大爆炸
+                    createExplosion(boss.x + boss.width/2, boss.y + boss.height/2);
+                }
+            }
+        }
+    }
+}
+
+// 玩家间攻击 - 持续伤害
+function attackPlayers() {
+    // 只在双人模式下进行玩家间攻击检测
+    if (!player2) return;
+    
+    // 玩家1攻击玩家2
+    if (player.isAttacking) {
+        const dx = player2.x - player.x;
+        const dy = player2.y - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance <= ATTACK_RANGE) {
+            // 每帧造成少量伤害（持续伤害）
+            player2.health -= ATTACK_DAMAGE / 60; // 假设60FPS，每秒总伤害为ATTACK_DAMAGE
+            
+            // 玩家2死亡检查
+            if (player2.health <= 0) {
+                player2.health = 0;
+            }
+        }
+    }
+    
+    // 玩家2攻击玩家1
+    if (player2.isAttacking) {
+        const dx = player.x - player2.x;
+        const dy = player.y - player2.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance <= ATTACK_RANGE) {
+            // 每帧造成少量伤害（持续伤害）
+            player.health -= ATTACK_DAMAGE / 60; // 假设60FPS，每秒总伤害为ATTACK_DAMAGE
+            
+            // 玩家1死亡检查
+            if (player.health <= 0) {
+                player.health = 0;
+            }
+        }
+    }
+}
+
+
+// 碰撞检测
+function checkCollision(rect1, rect2) {
+    return rect1.x < rect2.x + rect2.width &&
+           rect1.x + rect1.width > rect2.x &&
+           rect1.y < rect2.y + rect2.height &&
+           rect1.y + rect1.height > rect2.y;
+}
+
+// 检查圆形与矩形的碰撞（用于子弹与玩家的碰撞检测）
+function checkCircleRectCollision(circle, rect) {
+    // 找到矩形上距离圆心最近的点
+    const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+    const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
+    
+    // 计算距离
+    const dx = circle.x - closestX;
+    const dy = circle.y - closestY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    return distance <= circle.radius;
+}
+
+// 绘制玩家
+function drawPlayer(p) {
+    // 绘制玩家移动轨迹
+    if (p.trail && p.trail.length > 1) {
+        ctx.save();
+        
+        for (let i = 0; i < p.trail.length - 1; i++) {
+            const point = p.trail[i];
+            const nextPoint = p.trail[i + 1];
+            
+            // 设置轨迹颜色和透明度
+            const trailAlpha = point.alpha * 0.6; // 轨迹比玩家更透明
+            ctx.strokeStyle = `rgba(${p.color === 'blue' ? '0, 100, 255' : '255, 215, 0'}, ${trailAlpha})`;
+            ctx.lineWidth = 8 * point.alpha; // 轨迹宽度随透明度变化
+            ctx.lineCap = 'round';
+            
+            // 绘制轨迹线段
+            ctx.beginPath();
+            ctx.moveTo(point.x, point.y);
+            ctx.lineTo(nextPoint.x, nextPoint.y);
+            ctx.stroke();
+        }
+        
+        ctx.restore();
+    }
+    
+    // 绘制玩家角色
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.width, p.height);
+    
+    // 绘制玩家血条
+    drawHealthBar(p.x, p.y - 15, p.width, 5, p.health, PLAYER_MAX_HEALTH, '#2ecc71');
+    
+    // 绘制攻击范围（当攻击时）
+    if (p.isAttacking) {
+        ctx.beginPath();
+        ctx.arc(p.x + p.width/2, p.y + p.height/2, ATTACK_RANGE, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+        ctx.stroke();
+        
+        p.attackTimer--;
+        if (p.attackTimer <= 0) {
+            p.isAttacking = false;
+        }
+    }
+}
+
+// 绘制敌人
+function drawEnemies() {
+    enemies.forEach(enemy => {
+        if (!enemy.isDead) {
+            // 绘制敌人攻击范围
+            ctx.beginPath();
+            ctx.arc(enemy.x + enemy.width/2, enemy.y + enemy.height/2, 60, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(231, 76, 60, 0.5)';
+            ctx.stroke();
+            
+            // 绘制敌人
+            ctx.fillStyle = enemy.color;
+            ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+            
+            // 绘制敌人血条
+            drawHealthBar(enemy.x, enemy.y - 10, enemy.width, 5, enemy.health, enemy.maxHealth, '#e74c3c');
+        }
+    });
+}
+
+// 绘制血条
+function drawHealthBar(x, y, width, height, health, maxHealth, color) {
+    const healthPercentage = Math.max(0, health / maxHealth);
+    
+    // 血条背景
+    ctx.fillStyle = '#333';
+    ctx.fillRect(x, y, width, height);
+    
+    // 血条
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, width * healthPercentage, height);
+}
+
+// 绘制游戏状态
+function drawGameStatus() {
+    // 显示玩家血量
+    ctx.fillStyle = 'white';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(`玩家1 血量: ${Math.floor(player.health)}/${PLAYER_MAX_HEALTH}`, 10, canvas.height - 10);
+    if (player2) {
+        ctx.fillText(`玩家2 血量: ${Math.floor(player2.health)}/${PLAYER_MAX_HEALTH}`, 10, canvas.height - 30);
+    }
+    
+    // 显示剩余敌人数量
+    const aliveEnemies = enemies.filter(enemy => !enemy.isDead).length;
+    ctx.fillText(`剩余敌人: ${aliveEnemies}/${enemies.length}`, canvas.width - 150, canvas.height - 10);
+    
+    // 显示技能状态
+    const currentTime = Date.now();
+    
+    // 普通攻击状态
+    let attackStatus = player.canAttack ? '就绪' : 
+        `冷却中 (${Math.ceil((player.attackStartTime + ATTACK_DURATION + ATTACK_COOLDOWN - currentTime) / 1000)}秒)`;
+    ctx.fillText(`普通攻击: ${attackStatus}`, 10, canvas.height - 35);
+    
+    // 地雷技能状态
+    let mineStatus = player.canPlaceMine ? '就绪' : 
+        `冷却中 (${Math.ceil((player.lastMinePlaced + MINE_COOLDOWN - currentTime) / 1000)}秒)`;
+    ctx.fillText(`地雷技能: ${mineStatus}`, 10, canvas.height - 60);
+
+    // 手雷技能状态
+    let grenadeStatus = player.canThrowGrenade ? '就绪' :
+        `冷却中 (${Math.ceil((player.lastGrenadeThrowTime + GRENADE_COOLDOWN - currentTime) / 1000)}秒)`;
+    ctx.fillText(`手雷技能: ${grenadeStatus}`, 10, canvas.height - 110);
+    
+    // 旋转射击技能状态
+    let rotateShootStatus = '';
+    if (player.canUseRotateShoot) {
+        rotateShootStatus = '就绪';
+    } else if (player.rotateShootActive) {
+        const remainingDuration = Math.ceil((player.rotateShootStartTime + ROTATE_SHOOT_DURATION - currentTime) / 1000);
+        if (remainingDuration > 0) {
+            rotateShootStatus = `激活中 (${remainingDuration}秒)`;
+        } else {
+            player.rotateShootActive = false; // 持续时间结束
+            rotateShootStatus = '就绪'; // 持续时间结束后立即显示就绪，等待冷却
+        }
+    } else {
+        const remainingCooldown = Math.ceil((player.lastRotateShootTime + ROTATE_SHOOT_DURATION + ROTATE_SHOOT_COOLDOWN - currentTime) / 1000);
+        rotateShootStatus = `冷却中 (${remainingCooldown}秒)`;
+    }
+    ctx.fillText(`旋转射击: ${rotateShootStatus}`, 10, canvas.height - 85);
+    
+
+}
+
+// 敌人生成计时
+
+// 生成紫色敌人
+function generatePurpleEnemy() {
+    const currentTime = Date.now();
+    
+    // 检查是否达到生成间隔
+    if (currentTime - lastPurpleEnemySpawnTime >= PURPLE_ENEMY_SPAWN_INTERVAL) {
+        // 根据概率决定是否生成
+        if (Math.random() < PURPLE_ENEMY_SPAWN_CHANCE) {
+            const enemy = {
+                x: Math.random() * (canvas.width - 30),
+                y: Math.random() * (canvas.height - 30),
+                width: 30,
+                height: 30,
+                color: '#8e44ad', // 紫色
+                health: PURPLE_ENEMY_HEALTH,
+                maxHealth: PURPLE_ENEMY_HEALTH,
+                speed: PURPLE_ENEMY_SPEED,
+                isDead: false,
+                type: 'purple', // 标记为紫色敌人
+                lastShootTime: 0 // 上次射击时间
+            };
+            enemies.push(enemy);
+        }
+        
+        // 更新最后生成时间
+        lastPurpleEnemySpawnTime = currentTime;
+    }
+}
+
+// 生成红色敌人
+function generateRedEnemy() {
+    const currentTime = Date.now();
+    
+    // 检查是否达到生成间隔
+    if (currentTime - lastRedEnemySpawnTime >= RED_ENEMY_SPAWN_INTERVAL) {
+        // 根据概率决定是否生成
+        if (Math.random() < RED_ENEMY_SPAWN_CHANCE) {
+            const enemy = {
+                x: Math.random() * (canvas.width - 30),
+                y: Math.random() * (canvas.height - 30),
+                width: 30,
+                height: 30,
+                color: '#e74c3c', // 红色
+                health: RED_ENEMY_HEALTH,
+                maxHealth: RED_ENEMY_HEALTH,
+                speed: RED_ENEMY_SPEED,
+                isDead: false
+            };
+            enemies.push(enemy);
+        }
+        
+        // 更新最后生成时间
+        lastRedEnemySpawnTime = currentTime;
+    }
+}
+
+// 激活旋转射击技能 (开始充能)
+function activateRotateShoot(p) {
+    console.log('activateRotateShoot called'); // 添加日志
+    const currentTime = Date.now();
+
+    // 检查是否在冷却中
+    if (!p.canUseRotateShoot) {
+        const remainingCooldown = Math.ceil((p.lastRotateShootTime + ROTATE_SHOOT_COOLDOWN - currentTime) / 1000);
+        if (remainingCooldown > 0) {
+            showCooldownMessage('旋转射击', remainingCooldown);
+        }
+        return;
+    }
+
+    // 直接激活旋转射击，不进行充能
+    p.isChargingRotateShoot = false; // 确保充能状态为false
+    launchRotateShoot(p);
+
+    // 旋转射击激活时，玩家速度降为30%
+    p.speed = PLAYER_SPEED * 0.3;
+    p.rotateShootActive = true;
+    // 旋转射击时玩家可以移动，但速度降低
+
+    // 技能结束后恢复原速
+    setTimeout(() => {
+        p.speed = PLAYER_SPEED;
+    }, ROTATE_SHOOT_DURATION);
+    p.rotateShootStartTime = currentTime;
+    showCooldownMessage('旋转射击', '已激活');
+}
+
+
+
+// 发射引力炸弹
+// 发射旋转射击
+function launchRotateShoot(p) {
+    p.canUseRotateShoot = false;
+    p.lastRotateShootTime = Date.now();
+
+    let bulletsFired = 0;
+    const totalBullets = ROTATE_SHOOT_DURATION / ROTATE_SHOOT_INTERVAL;
+
+    const shootInterval = setInterval(() => {
+        if (bulletsFired < totalBullets) {
+            createBullet(p);
+            bulletsFired++;
+        } else {
+            clearInterval(shootInterval);
+        }
+    }, ROTATE_SHOOT_INTERVAL);
+
+    // 设置冷却，在技能持续时间结束后开始计算
+    setTimeout(() => {
+        p.canUseRotateShoot = true;
+    }, ROTATE_SHOOT_DURATION + ROTATE_SHOOT_COOLDOWN);
+}
+
+
+
+// 创建子弹（保留原有功能）
+function createBullet(p) {
+    const centerX = p.x + p.width / 2;
+    const centerY = p.y + p.height / 2;
+    
+    // 计算子弹方向（基于当前旋转角度）
+    const directionX = Math.cos(p.rotationAngle);
+    const directionY = -Math.sin(p.rotationAngle);
+    
+    // 创建新子弹
+    const bullet = {
+        x: centerX,
+        y: centerY,
+        radius: ROTATE_SHOOT_RADIUS,
+        directionX: directionX,
+        directionY: directionY,
+        speed: ROTATE_SHOOT_SPEED,
+        damage: ROTATE_SHOOT_DAMAGE,
+        hasHit: false,
+        color: '#f39c12', // 子弹颜色
+        isRotateShootBullet: true,
+        owner: p // 添加子弹的拥有者
+    };
+    
+    // 添加到子弹数组
+    bullets.push(bullet);
+    
+    // 更新旋转角度（每次发射后旋转）
+    p.rotationAngle += Math.PI / 8; // 每次旋转45度
+    if (p.rotationAngle >= Math.PI * 2) {
+        p.rotationAngle = 0; // 重置为0当完成一圈
+    }
+}
+
+// 按指定方向创建子弹
+function createBulletInDirection(p, angle) {
+    const centerX = p.x + p.width / 2;
+    const centerY = p.y + p.height / 2;
+    
+    // 计算子弹方向
+    const directionX = Math.cos(angle);
+    const directionY = Math.sin(angle);
+    
+    // 创建新子弹
+    const bullet = {
+        x: centerX,
+        y: centerY,
+        radius: ROTATE_SHOOT_RADIUS,
+        directionX: directionX,
+        directionY: directionY,
+        speed: ROTATE_SHOOT_SPEED,
+        damage: ROTATE_SHOOT_DAMAGE,
+        hasHit: false,
+        color: '#f39c12', // 子弹颜色
+        isRotateShootBullet: true,
+        owner: p // 添加子弹的拥有者
+    };
+    
+    // 添加到子弹数组
+    bullets.push(bullet);
+}
+
+// 更新子弹位置和检测碰撞
+function updateRotateShootStatus(p) {
+    if (!p.rotateShootActive) return;
+
+    const currentTime = Date.now();
+    if (currentTime >= p.rotateShootStartTime + ROTATE_SHOOT_DURATION) {
+        p.rotateShootActive = false;
+        p.speed = PLAYER_SPEED; // 恢复玩家速度
+        return;
+    }
+}
+
+function updateBullets(p) {
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        const bullet = bullets[i];
+        // 只处理属于当前玩家的子弹
+        if (bullet.owner !== p) continue;
+
+        // 更新子弹位置
+        bullet.x += bullet.directionX * bullet.speed;
+        bullet.y += bullet.directionY * bullet.speed;
+        
+        // 检查是否超出画布边界
+        if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+            bullets.splice(i, 1);
+            continue;
+        }
+        
+        // 检测与Boss的碰撞
+        if (boss && !boss.isDead) {
+            const closestX = Math.max(boss.x, Math.min(bullet.x, boss.x + boss.width));
+            const closestY = Math.max(boss.y, Math.min(bullet.y, boss.y + boss.height));
+            
+            const distanceX = bullet.x - closestX;
+            const distanceY = bullet.y - closestY;
+            const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+            
+            if (distance < ROTATE_SHOOT_RADIUS) {
+                // 子弹击中Boss
+                boss.health -= 15;
+                
+                // 创建爆炸效果
+                createExplosion(bullet.x, bullet.y);
+                
+                // 检查Boss是否死亡
+                if (boss.health <= 0) {
+                    boss.isDead = true;
+                }
+                
+                bullets.splice(i, 1); // 击中后立即移除子弹
+                continue;
+            }
+        }
+
+        // 检测与敌人的碰撞
+        let hasHitEnemy = false;
+        for (let j = 0; j < enemies.length; j++) {
+            const enemy = enemies[j];
+            if (!enemy.isDead) {
+                // 简单的圆形与矩形碰撞检测
+                const closestX = Math.max(enemy.x, Math.min(bullet.x, enemy.x + enemy.width));
+                const closestY = Math.max(enemy.y, Math.min(bullet.y, enemy.y + enemy.height));
+                
+                const distanceX = bullet.x - closestX;
+                const distanceY = bullet.y - closestY;
+                const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+                
+                if (distance < ROTATE_SHOOT_RADIUS) {
+                    // 子弹击中敌人
+                    enemy.health -= ROTATE_SHOOT_DAMAGE;
+
+                    // 如果是旋转射击子弹，让敌人后退10像素
+                    if (bullet.isRotateShootBullet) {
+                        const knockbackDistance = 10;
+                        enemy.x -= bullet.directionX * knockbackDistance;
+                        enemy.y -= bullet.directionY * knockbackDistance;
+
+                        // 确保敌人不会移出画布
+                        enemy.x = Math.max(0, Math.min(canvas.width - enemy.width, enemy.x));
+                        enemy.y = Math.max(0, Math.min(canvas.height - enemy.height, enemy.y));
+
+                        // 敌人速度降到原来的百分之三十
+                        if (!enemy.originalSpeed) {
+                            enemy.originalSpeed = enemy.speed; // 存储原始速度
+                        }
+                        enemy.speed = enemy.originalSpeed * 0.3; // 降低速度
+                        enemy.speedReducedTime = Date.now(); // 记录速度降低的时间
+
+                        // 敌人持续扣血，直到血量低于50%
+                        if (enemy.health > enemy.maxHealth * 0.5) {
+                            enemy.isBleeding = true;
+                            enemy.bleedDamage = bullet.damage / 5; // 每次扣血量，可以调整
+                            enemy.bleedInterval = 500; // 每0.5秒扣血一次
+                            enemy.lastBleedTime = Date.now();
+                        } else {
+                            enemy.isBleeding = false;
+                        }
+                    }
+
+                    // 检查敌人是否死亡
+                    if (enemy.health <= 0) {
+                        enemy.isDead = true;
+                    }
+
+                    // 创建爆炸效果
+                    createExplosion(bullet.x, bullet.y);
+
+                    // 如果是旋转射击的子弹，使敌人停止移动并持续扣血
+                    if (bullet.isRotateShootBullet) {
+                        enemy.isStunned = true;
+                        enemy.stunStartTime = Date.now();
+                    }
+
+                    hasHitEnemy = true;
+                    bullets.splice(i, 1); // 击中后立即移除子弹
+                    break;
+                }
+            }
+        }
+    }
+}
+
+// 绘制子弹
+function drawBullets() {
+    bullets.forEach(bullet => {
+        ctx.fillStyle = bullet.color || '#f39c12'; // 橙色子弹，如果子弹没有颜色属性则默认为橙色
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, ROTATE_SHOOT_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // 绘制Boss子弹
+    if (boss && boss.bullets) {
+        boss.bullets.forEach(bullet => {
+            ctx.fillStyle = bullet.color;
+            ctx.beginPath();
+            ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+    // 绘制紫色敌人子弹
+    purpleEnemyBullets.forEach(bullet => {
+        // 添加发光效果
+        ctx.save();
+        ctx.shadowColor = bullet.color;
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = bullet.color;
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 绘制白色内核
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, bullet.radius * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    });
+
+    // 绘制红色敌人子弹
+    redEnemyBullets.forEach(bullet => {
+        // 添加发光效果
+        ctx.save();
+        ctx.shadowColor = bullet.color;
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = bullet.color;
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // 绘制白色内核
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(bullet.x, bullet.y, bullet.radius * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    });
+}
+
+
+
+
+
+// 创建爆炸效果
+function createExplosion(x, y, radius = EXPLOSION_MAX_RADIUS, damage = 0, owner = null) {
+    const explosion = {
+        x: x,
+        y: y,
+        radius: 5, // 初始半径
+        maxRadius: radius,
+        duration: EXPLOSION_DURATION,
+        timer: EXPLOSION_DURATION, // 倒计时
+        colors: ['#ff0000', '#ff7700', '#ffff00'], // 爆炸颜色渐变（红->橙->黄）
+        damage: damage,
+        owner: owner, // 添加爆炸的拥有者
+        particles: [] // 添加粒子系统
+    };
+    
+    // 创建爆炸粒子
+    for (let i = 0; i < EXPLOSION_PARTICLES; i++) {
+        const angle = (Math.PI * 2 * i) / EXPLOSION_PARTICLES;
+        const speed = Math.random() * 4 + 3;
+        explosion.particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: EXPLOSION_DURATION,
+            maxLife: EXPLOSION_DURATION,
+            size: Math.random() * 3 + 2
+        });
+    }
+    
+    // 添加到爆炸效果数组
+    explosions.push(explosion);
+}
+
+// 创建紫色爆炸效果
+function createPurpleExplosion(x, y, radius = EXPLOSION_MAX_RADIUS, damage = 0, owner = null) {
+    const explosion = {
+        x: x,
+        y: y,
+        radius: 5, // 初始半径
+        maxRadius: radius,
+        duration: EXPLOSION_DURATION,
+        timer: EXPLOSION_DURATION, // 倒计时
+        colors: ['#8B00FF', '#9932CC', '#DA70D6'], // 紫色爆炸颜色渐变（深紫->中紫->浅紫）
+        damage: damage,
+        owner: owner // 添加爆炸的拥有者
+    };
+    
+    // 添加到爆炸效果数组
+    explosions.push(explosion);
+    console.log('紫色爆炸已创建！位置:', x, y, '爆炸数组长度:', explosions.length);
+}
+
+// 更新爆炸效果
+function updateExplosions(p) {
+    for (let i = explosions.length - 1; i >= 0; i--) {
+        const explosion = explosions[i];
+        // 只处理属于当前玩家的爆炸，公共爆炸由updatePublicExplosions处理
+        if (explosion.owner !== p) continue;
+        
+        // 更新计时器
+        explosion.timer--;
+        
+        // 计算当前半径（随时间增大然后缩小）
+        const progress = 1 - (explosion.timer / explosion.duration);
+        explosion.radius = explosion.maxRadius * Math.sin(progress * Math.PI);
+        
+        // 更新粒子
+        if (explosion.particles) {
+            for (let j = explosion.particles.length - 1; j >= 0; j--) {
+                const particle = explosion.particles[j];
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life--;
+                particle.vx *= 0.98; // 粒子减速
+                particle.vy *= 0.98;
+                
+                if (particle.life <= 0) {
+                    explosion.particles.splice(j, 1);
+                }
+            }
+        }
+        
+        // 如果计时器结束，移除爆炸效果
+        if (explosion.timer <= 0) {
+            // 如果爆炸有伤害，则对敌人和Boss造成伤害
+            if (explosion.damage > 0) {
+                // 对敌人造成伤害
+                enemies.forEach(enemy => {
+                    if (!enemy.isDead) {
+                        const dx = enemy.x + enemy.width / 2 - explosion.x;
+                        const dy = enemy.y + enemy.height / 2 - explosion.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance <= explosion.maxRadius) {
+                            enemy.health -= explosion.damage;
+                            if (enemy.health <= 0) {
+                                enemy.isDead = true;
+                            }
+                        }
+                    }
+                });
+
+                // 对Boss造成伤害
+                if (boss && !boss.isDead) {
+                    const dx = boss.x + boss.width / 2 - explosion.x;
+                    const dy = boss.y + boss.height / 2 - explosion.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance <= explosion.maxRadius) {
+                        boss.health -= explosion.damage;
+                        if (boss.health <= 0) {
+                            boss.isDead = true;
+                        }
+                    }
+                }
+            }
+            explosions.splice(i, 1);
+        }
+    }
+}
+
+// 更新公共爆炸效果（owner为null的爆炸）
+function updatePublicExplosions() {
+    for (let i = explosions.length - 1; i >= 0; i--) {
+        const explosion = explosions[i];
+        // 只处理公共爆炸（owner为null）
+        if (explosion.owner !== null) continue;
+        
+        // 更新计时器
+        explosion.timer--;
+        
+        // 计算当前半径（随时间增大然后缩小）
+        const progress = 1 - (explosion.timer / explosion.duration);
+        explosion.radius = explosion.maxRadius * Math.sin(progress * Math.PI);
+        
+        // 更新粒子
+        if (explosion.particles) {
+            for (let j = explosion.particles.length - 1; j >= 0; j--) {
+                const particle = explosion.particles[j];
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.life--;
+                particle.vx *= 0.98; // 粒子减速
+                particle.vy *= 0.98;
+                
+                if (particle.life <= 0) {
+                    explosion.particles.splice(j, 1);
+                }
+            }
+        }
+        
+        // 如果计时器结束，移除爆炸效果
+        if (explosion.timer <= 0) {
+            explosions.splice(i, 1);
+        }
+    }
+}
+
+// 绘制爆炸效果
+function drawExplosions(p) {
+    explosions.forEach(explosion => {
+        if (explosion.owner !== p && explosion.owner !== null) return;
+        
+        // 计算当前颜色（基于剩余时间）
+        const colorIndex = Math.floor((1 - explosion.timer / explosion.duration) * explosion.colors.length);
+        const color = explosion.colors[Math.min(colorIndex, explosion.colors.length - 1)];
+        const alpha = explosion.timer / explosion.duration;
+        
+        // 绘制主爆炸圆形（增强效果）
+        ctx.save();
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.arc(explosion.x, explosion.y, explosion.radius, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.globalAlpha = alpha * 0.8;
+        ctx.fill();
+        
+        // 绘制内核
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(explosion.x, explosion.y, explosion.radius * 0.6, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = alpha;
+        ctx.fill();
+        
+        // 绘制粒子
+        if (explosion.particles) {
+            explosion.particles.forEach(particle => {
+                const particleAlpha = particle.life / particle.maxLife;
+                ctx.shadowBlur = 5;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.globalAlpha = particleAlpha * 0.7;
+                ctx.fill();
+            });
+        }
+        
+        ctx.restore();
+    });
+}
+
+// 更新敌人生成逻辑
+// 检查Boss生成
+function checkBossSpawn() {
+    if (boss) return; // 如果Boss已经存在，则不生成新的Boss
+
+    const currentTime = Date.now();
+    const elapsedTime = currentTime - gameStartTime;
+
+    // 游戏开始30秒后，每30秒检查一次Boss生成
+    // 第一次检查：游戏开始30秒后
+    // 后续检查：距离上次检查30秒后
+    if (elapsedTime >= BOSS_SPAWN_TIME && 
+        (lastBossSpawnCheckTime === 0 || currentTime - lastBossSpawnCheckTime >= BOSS_SPAWN_TIME)) {
+        lastBossSpawnCheckTime = currentTime;
+        if (Math.random() < BOSS_SPAWN_CHANCE) {
+            // 生成Boss
+            boss = {
+                x: canvas.width / 2 - 50, // 初始位置在画布中央
+                y: canvas.height / 2 - 50,
+                width: 100,
+                height: 100,
+                color: 'purple',
+                health: BOSS_MAX_HEALTH,
+                maxHealth: BOSS_MAX_HEALTH,
+                speed: BOSS_SPEED,
+                isDead: false,
+                lastSkillTime: 0, // 上次释放技能时间
+                bullets: [], // Boss发射的子弹
+                draw: function() {
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+
+                    // 绘制血条
+                    const healthBarWidth = this.width;
+                    const healthBarHeight = 10;
+                    const healthBarX = this.x;
+                    const healthBarY = this.y - 15;
+                    ctx.fillStyle = 'gray';
+                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight);
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(healthBarX, healthBarY, healthBarWidth * (this.health / this.maxHealth), healthBarHeight);
+                },
+                shootSkill: function() {
+                    let waveCount = 0;
+                    const shootInterval = setInterval(() => {
+                        if (waveCount >= BOSS_BULLET_WAVES) {
+                            clearInterval(shootInterval);
+                            return;
+                        }
+                        const numBullets = BOSS_BULLET_COUNT;
+                        const angleStep = (Math.PI * 2) / numBullets;
+                        for (let i = 0; i < numBullets; i++) {
+                            const angle = i * angleStep;
+                            this.bullets.push({
+                                x: this.x + this.width / 2,
+                                y: this.y + this.height / 2,
+                                vx: Math.cos(angle) * BOSS_BULLET_SPEED,
+                                vy: Math.sin(angle) * BOSS_BULLET_SPEED,
+                                radius: 8,
+                                color: 'orange'
+                            });
+                        }
+                        waveCount++;
+                    }, 100); // 每100毫秒发射一波
+                }
+            };
+            // 清除所有小怪
+            enemies = [];
+        }
+    }
+}
+
+// 更新敌人生成逻辑
+function updateEnemySpawns() {
+    // 如果Boss存在，则不生成其他敌人
+    if (boss && !boss.isDead) {
+        return;
+    }
+    
+    const currentTime = Date.now();
+
+    // 生成紫色敌人
+    if (currentTime - lastPurpleEnemySpawnTime >= PURPLE_ENEMY_SPAWN_INTERVAL) {
+        if (Math.random() < PURPLE_ENEMY_SPAWN_CHANCE) {
+            generateEnemy('purple');
+        }
+        lastPurpleEnemySpawnTime = currentTime;
+    }
+
+    // 生成红色敌人
+    if (currentTime - lastRedEnemySpawnTime >= RED_ENEMY_SPAWN_INTERVAL) {
+        if (Math.random() < RED_ENEMY_SPAWN_CHANCE) {
+            generateEnemy('red');
+        }
+        lastRedEnemySpawnTime = currentTime;
+    }
+}
+
+// 游戏循环
+function gameLoop() {
+    // 清空画布
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    if (gameRunning) {
+        // 更新游戏状态
+        updatePlayerPosition(player);
+        if (player2) {
+            updatePlayerPosition(player2);
+        }
+        
+        // 检查玩家减速状态恢复
+        const currentTime = Date.now();
+        if (player.slowedByBoss && currentTime >= player.slowEndTime) {
+            player.speed = player.originalSpeed;
+            player.slowedByBoss = false;
+        }
+        if (player2 && player2.slowedByBoss && currentTime >= player2.slowEndTime) {
+            player2.speed = player2.originalSpeed;
+            player2.slowedByBoss = false;
+        }
+        
+        updateEnemies();
+        updatePurpleEnemyBullets(); // 更新紫色敌人子弹
+        updateRedEnemyBullets(); // 更新红色敌人子弹
+        updateMines();
+
+        // 处理敌人持续扣血
+        enemies.forEach(enemy => {
+            if (enemy.isBleeding && !enemy.isDead) {
+                const currentTime = Date.now();
+                if (currentTime - enemy.lastBleedTime >= enemy.bleedInterval) {
+                    if (enemy.health > enemy.maxHealth * 0.5) {
+                        enemy.health -= enemy.bleedDamage;
+                        enemy.lastBleedTime = currentTime;
+                    } else {
+                        enemy.isBleeding = false; // 血量低于50%时停止流血
+                    }
+                    if (enemy.health <= 0) {
+                        enemy.isDead = true;
+                        enemy.isBleeding = false; // 敌人死亡后停止流血
+                    }
+                }
+            }
+        });
+
+    updateRotateShootStatus(player);
+    if (player2) {
+        updateRotateShootStatus(player2);
+    }
+    updateBullets(player);
+    if (player2) {
+        updateBullets(player2);
+    }
+    updateGrenades(player);
+    updateExplosions(player);
+    if (player2) {
+        updateGrenades(player2);
+        updateExplosions(player2);
+    }
+    updatePublicExplosions(); // 更新公共爆炸效果
+    // 只在决赛圈未激活时生成敌人和Boss
+    if (!finalCircleActive) {
+        updateEnemySpawns(); // 更新敌人生成逻辑
+        checkBossSpawn(); // 检查Boss生成
+    }
+    if (boss) {
+        updateBoss(); // 更新Boss状态
+        boss.draw(); // 绘制Boss
+    }
+    attackEnemies();
+    attackPlayers(); // 检测玩家间攻击
+    
+    // 更新决赛圈
+    if (finalCircleActive) {
+        updateFinalCircle();
+    }
+    
+    // 检查玩家PVP碰撞（仅在决赛圈激活时）
+    if (finalCircleActive && player2) {
+        checkPlayerPVP();
+    }
+    
+
+        
+        // 检查游戏是否结束（所有敌人都被击败）
+        if (enemies.every(enemy => enemy.isDead) && (!boss || boss.isDead)) {
+            // 单人模式直接结束游戏
+            if (!player2) {
+                gameRunning = false;
+                gameWinner = '你存活下来了！';
+                // 停止游戏音乐
+                const gameMusic = document.getElementById('gameMusic');
+                if (gameMusic) {
+                    gameMusic.pause();
+                }
+                // 播放大厅音乐
+                const bgMusic = document.getElementById('backgroundMusic');
+                if (bgMusic) {
+                    bgMusic.play();
+                }
+            } else {
+                // 双人模式启动决赛圈
+                if (!finalCircleActive && !finalBattleStarted) {
+                    startFinalCircle();
+                }
+            }
+        }
+        
+        // 检查双人模式下的获胜条件
+        if (player2) {
+            if (player.health <= 0 && player2.health > 0) {
+                gameRunning = false;
+                gameWinner = "玩家2";
+                console.log("玩家1死亡，玩家2获胜！");
+            } else if (player2.health <= 0 && player.health > 0) {
+                gameRunning = false;
+                gameWinner = "玩家1";
+                console.log("玩家2死亡，玩家1获胜！");
+            } else if (player.health <= 0 && player2.health <= 0) {
+                gameRunning = false;
+                gameWinner = "平局";
+                console.log("双方同时死亡，平局！");
+            }
+        } else {
+            // 单人模式下玩家死亡
+            if (player.health <= 0) {
+                gameRunning = false;
+                gameWinner = "你被干掉了！";
+                console.log("玩家死亡，游戏结束！");
+            }
+        }
+    }
+    
+    // 绘制游戏元素
+    drawPlayer(player);
+    if (player2) {
+        drawPlayer(player2);
+    }
+    drawEnemies();
+    drawMines();
+    drawBullets();
+    drawGrenades(player);
+    if (player2) {
+        drawGrenades(player2);
+    }
+    drawExplosions(player); // 绘制爆炸效果
+    if (player2) {
+        drawExplosions(player2);
+    }
+    drawGameStatus();
+    
+    // 绘制决赛圈
+    if (finalCircleActive) {
+        drawFinalCircle();
+    }
+    
+    // 绘制获胜信息
+    if (gameWinner) {
+        drawVictoryMessage();
+    }
+    
+    // 当玩家血量低于三分之一时绘制红色光晕
+    if (player.health < player.maxHealth / 3) {
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = 'red';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+    }
+    
+    // 继续下一帧
+    requestAnimationFrame(gameLoop);
+}
+
+// 放置地雷
+function placeMine() {
+    const currentTime = Date.now();
+    
+    // 检查是否在冷却中
+    if (!player.canPlaceMine) {
+        // 计算剩余冷却时间
+        const remainingCooldown = Math.ceil((player.lastMinePlaced + MINE_COOLDOWN - currentTime) / 1000);
+        
+        // 显示冷却提示
+        showCooldownMessage('地雷', remainingCooldown);
+        return;
+    }
+    
+    // 创建新地雷
+    const mine = {
+        x: player.x + player.width / 2 - 15, // 居中放置
+        y: player.y + player.height / 2 - 15,
+        width: 30,
+        height: 30,
+        placedTime: currentTime,
+        explodeTime: currentTime + 3000, // 3秒后爆炸
+        hasExploded: false,
+        explosionTimer: 0,
+        isExploding: false,
+        damageApplied: false // 新增属性，标记伤害是否已应用
+    };
+    
+    // 添加到地雷数组
+    mines.push(mine);
+    
+    // 设置冷却
+    player.canPlaceMine = false;
+    player.lastMinePlaced = currentTime;
+    
+    // 设置冷却结束后的回调
+    setTimeout(() => {
+        player.canPlaceMine = true;
+    }, MINE_COOLDOWN);
+}
+
+// 更新手雷状态
+function updateGrenades(p) {
+    const currentTime = Date.now();
+
+    for (let i = grenades.length - 1; i >= 0; i--) {
+        const grenade = grenades[i];
+        // 只处理属于当前玩家的手雷
+        if (grenade.owner !== p) continue;
+
+        // 计算手雷飞行进度 (0.0 到 1.0)
+        const progress = (currentTime - grenade.startTime) / grenade.flightTime;
+
+        if (progress < 1) {
+            // 抛物线运动
+            // 使用二次贝塞尔曲线模拟抛物线
+            const startX = grenade.x;
+            const startY = grenade.y;
+            const endX = grenade.targetX;
+            const endY = grenade.targetY;
+
+            // 控制点，用于模拟抛物线的高度
+            const controlX = (startX + endX) / 2;
+            // 根据水平距离调整抛物线顶点高度，距离越远，抛得越高
+            const distanceX = Math.abs(endX - startX);
+            const distanceY = Math.abs(endY - startY);
+            const maxDistance = Math.max(distanceX, distanceY);
+            // 调整抛物线顶点高度，使其更合理地落在目标点
+            const controlY = (startY + endY) / 2 - Math.max(100, maxDistance / 4);
+
+            grenade.currentX = (1 - progress) * (1 - progress) * startX +
+                               2 * (1 - progress) * progress * controlX +
+                               progress * progress * endX;
+            grenade.currentY = (1 - progress) * (1 - progress) * startY +
+                               2 * (1 - progress) * progress * controlY +
+                               progress * progress * endY;
+        } else {
+            // 到达目标点，触发爆炸
+            if (!grenade.hasExploded) {
+                createExplosion(grenade.targetX, grenade.targetY, grenade.explosionRadius, grenade.damage, p);
+                grenade.hasExploded = true;
+            }
+            // 爆炸后移除手雷
+            grenades.splice(i, 1);
+        }
+    }
+}
+
+
+
+// 更新地雷状态
+function updateMines() 
+{
+    const currentTime = Date.now();
+    
+    for (let i = mines.length - 1; i >= 0; i--) {
+        const mine = mines[i];
+        // 检查是否已爆炸
+        // 检查是否与敌人碰撞
+        for (let j = 0; j < enemies.length; j++) {
+            const enemy = enemies[j];
+            if (!enemy.isDead && checkCollision(mine, enemy) && !mine.hasExploded) {
+                // 设置0.5秒后爆炸
+                mine.explodeTime = currentTime + 500;
+                mine.hasExploded = true;
+            }
+        }
+        
+        // 检查是否与Boss碰撞
+        if (boss && !boss.isDead && checkCollision(mine, boss) && !mine.hasExploded) {
+            // 设置0.5秒后爆炸
+            mine.explodeTime = currentTime + 500;
+            mine.hasExploded = true;
+        }
+        
+        // 检查地雷是否已触发爆炸，爆炸时间已到，且伤害尚未应用
+        if (mine.hasExploded && currentTime >= mine.explodeTime && !mine.damageApplied) {
+            explodeMine(mine); // 应用伤害
+            mine.damageApplied = true; // 标记伤害已应用
+
+            mine.isExploding = true; // 进入爆炸动画状态
+            mine.explosionTimer = 20; // 爆炸动画持续时间
+        }
+        
+        // 更新爆炸动画
+        if (mine.isExploding) {
+            mine.explosionTimer--;
+            // 0.1秒后（即爆炸动画开始后6帧，explosionTimer从20减到14）立即消失
+            if (mine.explosionTimer <= 14) {
+                mine.isExploding = false; // 动画结束
+                // 立即移除地雷
+                const index = mines.indexOf(mine);
+                if (index !== -1) {
+                    mines.splice(index, 1);
+                }
+            }
+        }
+        
+        // 更新爆炸动画
+        if (mine.isExploding) {
+            mine.explosionTimer--;
+            if (mine.explosionTimer <= 0) {
+                mine.isExploding = false; // Animation finished
+            }
+        }
+    }
+}
+
+// 地雷爆炸逻辑
+function explodeMine(mine) {
+    // 创建爆炸效果（与手雷相同的爆炸效果）
+    createExplosion(mine.x + mine.width/2, mine.y + mine.height/2, MINE_EXPLOSION_RANGE, 0, player);
+    
+    // 对敌人造成伤害
+    enemies.forEach(enemy => {
+        if (!enemy.isDead) {
+            // 计算与地雷的距离
+            const dx = enemy.x + enemy.width/2 - (mine.x + mine.width/2);
+            const dy = enemy.y + enemy.height/2 - (mine.y + mine.height/2);
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // 如果在爆炸范围内
+            if (distance <= MINE_EXPLOSION_RANGE) {
+                enemy.health -= MINE_DAMAGE;
+                
+                // 敌人死亡检查
+                if (enemy.health <= 0) {
+                    enemy.isDead = true;
+                }
+            }
+        }
+    });
+    
+    // 对Boss造成伤害
+    if (boss && !boss.isDead) {
+        // 计算与地雷的距离
+        const dx = boss.x + boss.width/2 - (mine.x + mine.width/2);
+        const dy = boss.y + boss.height/2 - (mine.y + mine.height/2);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // 如果在爆炸范围内
+        if (distance <= MINE_EXPLOSION_RANGE) {
+            boss.health -= MINE_DAMAGE;
+            
+            // Boss死亡检查
+            if (boss.health <= 0) {
+                boss.isDead = true;
+                gameRunning = false; // Boss死亡，游戏结束
+                boss = null; // 清除Boss对象
+            }
+        }
+    }
+}
+
+// 绘制手雷
+function drawGrenades(p) {
+    grenades.forEach(grenade => {
+        if (grenade.owner !== p) return;
+        ctx.beginPath();
+        ctx.arc(grenade.currentX, grenade.currentY, grenade.radius, 0, Math.PI * 2);
+        ctx.fillStyle = grenade.color;
+        ctx.fill();
+        ctx.closePath();
+    });
+}
+
+// 绘制地雷
+function drawMines() {
+    mines.forEach(mine => {
+        // 绘制爆炸效果 (如果正在爆炸) - 橙色渐变圆形
+        if (mine.isExploding) {
+            const gradient = ctx.createRadialGradient(mine.x + mine.width / 2, mine.y + mine.height / 2, 0, mine.x + mine.width / 2, mine.y + mine.height / 2, MINE_EXPLOSION_RANGE);
+            gradient.addColorStop(0, 'rgba(255, 165, 0, 1)'); // 橙色，完全不透明
+            gradient.addColorStop(1, 'rgba(255, 165, 0, 0)'); // 橙色，完全透明
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(mine.x + mine.width / 2, mine.y + mine.height / 2, MINE_EXPLOSION_RANGE, 0, Math.PI * 2);
+            ctx.fill();
+
+
+        } else {
+            // 根据地雷所有者设置颜色
+            let mineColor, borderColor, dotColor;
+            if (mine.owner === player) {
+                // 玩家一的地雷 - 紫色，高可见度
+                mineColor = 'rgba(128, 0, 128, 0.9)'; // 紫色，几乎不透明
+                borderColor = 'rgba(75, 0, 130, 1.0)'; // 深紫色边框，完全不透明
+                dotColor = 'rgba(255, 0, 255, 1.0)'; // 亮紫色点，完全不透明
+            } else {
+                // 玩家二的地雷 - 棕色，高可见度
+                mineColor = 'rgba(139, 69, 19, 0.9)'; // 棕色，几乎不透明
+                borderColor = 'rgba(101, 67, 33, 1.0)'; // 棕色边框，完全不透明
+                dotColor = 'rgba(205, 133, 63, 1.0)'; // 亮棕色点，完全不透明
+            }
+            
+            // 绘制地雷 - 更隐蔽的显示
+            ctx.fillStyle = mineColor;
+            ctx.fillRect(mine.x + 5, mine.y + 5, mine.width - 10, mine.height - 10); // 更小的尺寸
+            
+            // 绘制微弱的边框
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(mine.x + 5, mine.y + 5, mine.width - 10, mine.height - 10);
+            
+            // 绘制小点作为地雷标识
+            ctx.fillStyle = dotColor;
+            ctx.beginPath();
+            ctx.arc(mine.x + mine.width/2, mine.y + mine.height/2, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 如果地雷已被触发，显示倒计时
+            if (mine.hasExploded) {
+                const remainingTime = Math.max(0, Math.ceil((mine.explodeTime - Date.now()) / 1000));
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+                ctx.font = 'bold 10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(remainingTime.toString(), mine.x + mine.width/2, mine.y - 5);
+            }
+        }
+    });
+}
+
+// 显示冷却提示
+function showCooldownMessage(skillName, remainingTime) {
+    // 仅在屏幕左上角显示冷却提示，不覆盖整个屏幕
+    ctx.fillStyle = 'white';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${skillName}冷却中 (${remainingTime}秒)`, 10, 100);
+}
+
+// 启动决赛圈
+function startFinalCircle() {
+    finalCircleActive = true;
+    // 初始决赛圈覆盖整个画布，留出一些边距
+    finalCircleRadius = Math.min(canvas.width, canvas.height) * 0.8;
+    finalCircleCenterX = canvas.width / 2;
+    finalCircleCenterY = canvas.height / 2;
+    finalCircleStartTime = Date.now();
+    lastCircleDamageTime = Date.now();
+    
+    // 显示决赛圈开始提示
+    console.log("决赛圈开始！初始半径:", finalCircleRadius);
+}
+
+// 更新决赛圈
+function updateFinalCircle() {
+    const currentTime = Date.now();
+    const elapsedTime = currentTime - finalCircleStartTime;
+    
+    // 缩小决赛圈
+    if (finalCircleRadius > FINAL_CIRCLE_MIN_RADIUS) {
+        finalCircleRadius -= FINAL_CIRCLE_SHRINK_SPEED;
+        if (finalCircleRadius < FINAL_CIRCLE_MIN_RADIUS) {
+            finalCircleRadius = FINAL_CIRCLE_MIN_RADIUS;
+        }
+    }
+    
+    // 检查玩家是否在决赛圈外并造成伤害
+    if (currentTime - lastCircleDamageTime >= FINAL_CIRCLE_DAMAGE_INTERVAL) {
+        checkPlayerInCircle(player);
+        if (player2) {
+            checkPlayerInCircle(player2);
+        }
+        lastCircleDamageTime = currentTime;
+    }
+}
+
+// 检查玩家是否在决赛圈内
+function checkPlayerInCircle(p) {
+    const playerCenterX = p.x + p.width / 2;
+    const playerCenterY = p.y + p.height / 2;
+    const distanceFromCenter = Math.sqrt(
+        Math.pow(playerCenterX - finalCircleCenterX, 2) + 
+        Math.pow(playerCenterY - finalCircleCenterY, 2)
+    );
+    
+    // 如果玩家在决赛圈外，造成伤害
+    if (distanceFromCenter > finalCircleRadius) {
+        p.health -= FINAL_CIRCLE_DAMAGE;
+        if (p.health <= 0) {
+            p.health = 0;
+            gameRunning = false; // 立即停止游戏
+            // 根据游戏模式判断获胜者
+            if (currentGameMode === 'single') {
+                gameWinner = "你被干掉了！";
+                console.log("玩家在决赛圈外死亡！");
+            } else {
+                // 双人模式
+                if (p === player) {
+                    gameWinner = "玩家2";
+                    console.log("玩家1在决赛圈外死亡，玩家2获胜！");
+                } else {
+                    gameWinner = "玩家1";
+                    console.log("玩家2在决赛圈外死亡，玩家1获胜！");
+                }
+            }
+        }
+    }
+}
+
+// 检查玩家PVP碰撞
+function checkPlayerPVP() {
+    if (!player2 || player.health <= 0 || player2.health <= 0) return;
+    
+    // 检查碰撞
+    if (checkCollision(player, player2)) {
+        if (!finalBattleStarted) {
+            finalBattleStarted = true;
+            console.log("进入决战阶段！");
+        }
+        
+        // 双方扣血
+        player.health -= PVP_DAMAGE;
+        player2.health -= PVP_DAMAGE;
+        
+        // 检查是否有玩家死亡（PVP只在双人模式下发生）
+        if (player.health <= 0 && player2.health <= 0) {
+            gameRunning = false;
+            gameWinner = "平局";
+            console.log("双方在PVP中同时死亡，平局！");
+        } else if (player.health <= 0) {
+            gameRunning = false;
+            gameWinner = "玩家2";
+            console.log("玩家1在PVP中死亡，玩家2获胜！");
+        } else if (player2.health <= 0) {
+            gameRunning = false;
+            gameWinner = "玩家1";
+            console.log("玩家2在PVP中死亡，玩家1获胜！");
+        }
+    }
+}
+
+// 绘制决赛圈
+function drawFinalCircle() {
+    // 绘制决赛圈边界
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+    ctx.lineWidth = 5;
+    ctx.setLineDash([10, 5]);
+    ctx.beginPath();
+    ctx.arc(finalCircleCenterX, finalCircleCenterY, finalCircleRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // 绘制决赛圈外的危险区域
+    ctx.globalAlpha = 0.3;
+    ctx.fillStyle = 'red';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // 清除决赛圈内的区域
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(finalCircleCenterX, finalCircleCenterY, finalCircleRadius, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.restore();
+    
+    // 显示决赛圈信息
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 20px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('决赛圈', canvas.width / 2, 50);
+    
+    // 显示决赛圈半径信息
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.font = '16px Arial';
+    ctx.fillText(`安全区半径: ${Math.round(finalCircleRadius)}`, canvas.width / 2, 75);
+    
+    // 计算缩小进度
+    const initialRadius = Math.min(canvas.width, canvas.height) * 0.8;
+    const progress = ((initialRadius - finalCircleRadius) / (initialRadius - FINAL_CIRCLE_MIN_RADIUS) * 100);
+    if (progress < 100) {
+        ctx.fillText(`缩圈进度: ${Math.round(progress)}%`, canvas.width / 2, 95);
+    }
+    
+    if (finalBattleStarted) {
+        ctx.fillStyle = 'yellow';
+        ctx.font = 'bold 24px Arial';
+        ctx.fillText('决战阶段！', canvas.width / 2, 125);
+    }
+}
+
+// 绘制获胜信息
+function drawVictoryMessage() {
+    ctx.save();
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = 'gold';
+    ctx.font = 'bold 48px Arial';
+    ctx.textAlign = 'center';
+    
+    // 根据游戏模式和gameWinner内容显示不同信息
+    if (currentGameMode === 'single') {
+        // 单人模式：直接显示gameWinner的内容（如"你存活下来了！"或"你被干掉了！"）
+        ctx.fillText(gameWinner, canvas.width / 2, canvas.height / 2);
+    } else {
+        // 双人模式：显示传统的胜利信息
+        if (gameWinner === "平局") {
+            ctx.fillText(gameWinner, canvas.width / 2, canvas.height / 2);
+        } else {
+            ctx.fillText(`${gameWinner}胜利！`, canvas.width / 2, canvas.height / 2);
+        }
+    }
+    
+    ctx.fillStyle = 'white';
+    ctx.font = '24px Arial';
+    ctx.fillText('按ESC键返回大厅', canvas.width / 2, canvas.height / 2 + 60);
+    ctx.restore();
+}
+
+
+
+// 返回大厅
+function returnToLobby() {
+    // 停止游戏音乐
+    const gameMusic = document.getElementById('gameMusic');
+    if (gameMusic) {
+        gameMusic.pause();
+        gameMusic.currentTime = 0;
+    }
+    
+    // 播放大厅音乐
+    const bgMusic = document.getElementById('backgroundMusic');
+    if (bgMusic) {
+        bgMusic.play().catch(e => console.log("大厅音乐播放失败: ", e));
+    }
+    
+    // 重置游戏状态
+    gameRunning = false;
+    gameWinner = null;
+    currentGameMode = 'single';
+    
+    // 清空游戏元素
+    enemies = [];
+    bullets = [];
+    purpleEnemyBullets = [];
+    explosions = [];
+    grenades = [];
+    mines = [];
+    boss = null;
+    bossSpawned = false;
+    
+    // 重置决赛圈相关变量
+    finalCircleActive = false;
+    finalCircleRadius = 0;
+    finalCircleCenterX = 0;
+    finalCircleCenterY = 0;
+    finalCircleStartTime = 0;
+    finalBattleStarted = false;
+    lastCircleDamageTime = 0;
+    
+    // 重置玩家
+    player2 = null;
+    
+    // 恢复大厅背景
+    document.body.style.backgroundColor = '';
+    document.body.style.backgroundImage = "url('https://cdn.yiranlaoshi.com/video/1754967658551-pasted-image-1754967658551.png')";
+    
+    // 显示欢迎界面
+    document.getElementById('welcomeScreen').style.display = 'flex';
+    document.getElementById('gameCanvas').style.filter = 'blur(5px)';
+    
+    console.log("返回大厅！");
+}
+</script>
