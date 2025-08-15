@@ -61,6 +61,183 @@
         .gameButton:hover {
             background-color: #2980b9;
         }
+        .terrainButton {
+            padding: 15px;
+            margin: 5px;
+            font-size: 1.1em;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .terrainButton:hover {
+            background-color: #d5dbdb;
+            border-color: #95a5a6;
+        }
+        .terrainButton.selected {
+            background-color: #e8f5e8;
+            border-color: #27ae60;
+        }
+        .terrainButton.selected .terrainIndicator {
+            background-color: #27ae60 !important;
+        }
+        
+        /* 建议按钮样式 */
+        #suggestionButton {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 102;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        #suggestionButton:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+        
+        /* 建议弹窗样式 */
+        #suggestionModal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        #suggestionModalContent {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+            position: relative;
+        }
+        
+        #suggestionTextarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        
+        #suggestionTextarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .suggestionButtons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .suggestionBtn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .suggestionBtn.submit {
+            background-color: #27ae60;
+            color: white;
+        }
+        
+        .suggestionBtn.submit:hover {
+            background-color: #229954;
+        }
+        
+        .suggestionBtn.cancel {
+            background-color: #95a5a6;
+            color: white;
+        }
+        
+        .suggestionBtn.cancel:hover {
+            background-color: #7f8c8d;
+        }
+        
+        /* 建议通知样式 */
+         #suggestionNotification {
+             position: fixed;
+             top: 20px;
+             left: 50%;
+             transform: translateX(-50%);
+             background-color: #2ecc71;
+             color: white;
+             padding: 15px 25px;
+             border-radius: 5px;
+             z-index: 1001;
+             display: none;
+             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+             max-width: 400px;
+         }
+         
+         #suggestionNotification .notification-content {
+             display: flex;
+             align-items: center;
+             justify-content: space-between;
+             gap: 15px;
+         }
+         
+         #suggestionNotification .notification-text {
+             flex: 1;
+         }
+         
+         #suggestionNotification .know-button {
+             background-color: rgba(255,255,255,0.2);
+             color: white;
+             border: 1px solid rgba(255,255,255,0.3);
+             padding: 5px 12px;
+             border-radius: 3px;
+             cursor: pointer;
+             font-size: 12px;
+             transition: background-color 0.3s ease;
+             white-space: nowrap;
+         }
+         
+         #suggestionNotification .know-button:hover {
+             background-color: rgba(255,255,255,0.3);
+         }
+         
+         #suggestionNotification .show-full-button {
+             background: none;
+             border: none;
+             color: #3498db;
+             text-decoration: underline;
+             cursor: pointer;
+             font-size: 12px;
+             margin: 0 5px;
+             padding: 0;
+         }
+         
+         #suggestionNotification .show-full-button:hover {
+             color: #2980b9;
+         }
     </style>
 </head>
 <body>
@@ -69,6 +246,25 @@
         <button id="musicToggleButton" style="background-color: white; border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 20px;">▶️</button>
     </div>
     <audio id="gameMusic" src="game_music.mp3" loop></audio>
+
+    <!-- 建议按钮 -->
+    <button id="suggestionButton">建议</button>
+    
+    <!-- 建议弹窗 -->
+    <div id="suggestionModal">
+        <div id="suggestionModalContent">
+            <h2>给开发者的建议</h2>
+            <p>请在下方输入您的建议或意见：</p>
+            <textarea id="suggestionTextarea" placeholder="请输入您的建议..."></textarea>
+            <div class="suggestionButtons">
+                <button class="suggestionBtn cancel" id="cancelSuggestionBtn">取消</button>
+                <button class="suggestionBtn submit" id="submitSuggestionBtn">提交建议</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 建议通知 -->
+    <div id="suggestionNotification"></div>
 
     <div id="welcomeScreen">
         <div id="welcomeMessage">欢迎玩家1号</div>
@@ -92,10 +288,43 @@
             <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 400px; text-align: center;">
                 <h2>选择游戏难度</h2>
                 <div style="display: flex; flex-direction: column; margin-top: 20px;">
-                    <button id="easyModeBtn" class="gameButton" onclick="startGame(1)" style="background-color: green;">简单模式</button>
-                    <button id="normalModeBtn" class="gameButton" onclick="startGame(2)" style="background-color: blue;">正常模式</button>
-                    <button id="hardModeBtn" class="gameButton" onclick="startGame(3)" style="background-color: red;">困难模式</button>
-                    <button id="hellModeBtn" class="gameButton" onclick="startGame(4)" style="background-color: brown;">地狱模式</button>
+                    <button id="easyModeBtn" class="gameButton" style="background-color: green;">简单模式</button>
+                    <button id="normalModeBtn" class="gameButton" style="background-color: blue;">正常模式</button>
+                    <button id="hardModeBtn" class="gameButton" style="background-color: red;">困难模式</button>
+                    <button id="hellModeBtn" class="gameButton" style="background-color: brown;">地狱模式</button>
+                </div>
+            </div>
+        </div>
+        <div id="terrainModal" style="display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div style="background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; text-align: center;">
+                <h2>选择地形</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                    <button id="shallowWaterBtn" class="terrainButton" data-terrain="shallow">
+                        <div class="terrainIndicator" style="width: 20px; height: 20px; background-color: #888; margin: 0 auto 10px; border-radius: 3px;"></div>
+                        浅水
+                    </button>
+                    <button id="deepWaterBtn" class="terrainButton" data-terrain="deep">
+                        <div class="terrainIndicator" style="width: 20px; height: 20px; background-color: #888; margin: 0 auto 10px; border-radius: 3px;"></div>
+                        深水
+                    </button>
+                    <button id="lavaBtn" class="terrainButton" data-terrain="lava">
+                        <div class="terrainIndicator" style="width: 20px; height: 20px; background-color: #888; margin: 0 auto 10px; border-radius: 3px;"></div>
+                        岩浆
+                    </button>
+                    <button id="grassBtn" class="terrainButton" data-terrain="grass">
+                        <div class="terrainIndicator" style="width: 20px; height: 20px; background-color: #888; margin: 0 auto 10px; border-radius: 3px;"></div>
+                        草丛
+                    </button>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button id="startGameBtn" class="gameButton" style="background-color: #27ae60;">开始游戏</button>
+                </div>
+                <div style="margin-top: 15px; font-size: 14px; color: #666; text-align: left;">
+                    <h3>地形效果说明：</h3>
+                    <p><strong>浅水：</strong>玩家和敌人速度减慢70%</p>
+                    <p><strong>深水：</strong>玩家头上出现3个气泡，每5秒消失1个，全部消失后持续扣血且速度减慢60%；敌人进入即减血</p>
+                    <p><strong>岩浆：</strong>碰到后无法移动，持续扣血</p>
+                    <p><strong>草丛：</strong>玩家进入后隐身，敌人停止射击并显示问号；使用技能或离开草丛时敌人显示感叹号1秒后恢复攻击，20秒内再次进入草丛无效</p>
                 </div>
             </div>
         </div>
@@ -390,31 +619,74 @@
         document.getElementById('difficultyModal').style.display = 'block';
     });
 
+    // 全局变量存储选择的难度和地形
+    let selectedDifficulty = null;
+    let selectedTerrain = [];
+
     // 难度选择按钮点击事件
     document.getElementById('easyModeBtn').addEventListener('click', function() {
-        const mode = window.gameMode || 'single';
-        startGame('easy', mode);
-        window.gameMode = null; // 重置模式标记
+        selectedDifficulty = 'easy';
+        showTerrainSelection();
     });
     document.getElementById('normalModeBtn').addEventListener('click', function() {
-        const mode = window.gameMode || 'single';
-        startGame('normal', mode);
-        window.gameMode = null; // 重置模式标记
+        selectedDifficulty = 'normal';
+        showTerrainSelection();
     });
     document.getElementById('hardModeBtn').addEventListener('click', function() {
-        const mode = window.gameMode || 'single';
-        startGame('hard', mode);
-        window.gameMode = null; // 重置模式标记
+        selectedDifficulty = 'hard';
+        showTerrainSelection();
     });
     document.getElementById('hellModeBtn').addEventListener('click', function() {
-        const mode = window.gameMode || 'single';
-        startGame('hell', mode);
-        window.gameMode = null; // 重置模式标记
+        selectedDifficulty = 'hell';
+        showTerrainSelection();
+    });
+
+    // 显示地形选择模态框
+    function showTerrainSelection() {
+        document.getElementById('difficultyModal').style.display = 'none';
+        document.getElementById('terrainModal').style.display = 'block';
+    }
+
+    // 地形选择按钮点击事件
+    document.querySelectorAll('.terrainButton').forEach(button => {
+        button.addEventListener('click', function() {
+            const terrain = this.getAttribute('data-terrain');
+            const indicator = this.querySelector('.terrainIndicator');
+            
+            if (this.classList.contains('selected')) {
+                // 取消选择
+                this.classList.remove('selected');
+                selectedTerrain = selectedTerrain.filter(t => t !== terrain);
+            } else {
+                // 选择地形
+                this.classList.add('selected');
+                if (!selectedTerrain.includes(terrain)) {
+                    selectedTerrain.push(terrain);
+                }
+            }
+        });
+    });
+
+    // 开始游戏按钮点击事件
+    document.getElementById('startGameBtn').addEventListener('click', function() {
+        if (selectedDifficulty) {
+            const mode = window.gameMode || 'single';
+            startGame(selectedDifficulty, mode, selectedTerrain);
+            window.gameMode = null; // 重置模式标记
+            selectedDifficulty = null;
+            selectedTerrain = [];
+            // 重置地形选择状态
+            document.querySelectorAll('.terrainButton').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+        }
     });
 
     // 开始游戏函数
-    function startGame(difficulty, mode = 'single') { // mode: 'single' or 'multi'
+    function startGame(difficulty, mode = 'single', terrains = []) { // mode: 'single' or 'multi', terrains: array of selected terrains
         document.getElementById('difficultyModal').style.display = 'none';
+        document.getElementById('terrainModal').style.display = 'none';
+        hideSuggestionButton(); // 隐藏建议按钮
         incrementPlayerCount();
         initWelcomeMessage();
         document.getElementById('welcomeScreen').style.display = 'none';
@@ -425,7 +697,8 @@
         document.body.style.backgroundImage = 'none';
         
         currentGameMode = mode; // 设置当前游戏模式
-        init(difficulty, mode); // 初始化游戏并传入难度参数和模式
+        currentTerrains = terrains; // 设置当前地形
+        init(difficulty, mode, terrains); // 初始化游戏并传入难度参数、模式和地形
         gameRunning = true; // 游戏状态设置为运行中
         gameStartTime = Date.now(); // 记录游戏开始时间
     lastBossSpawnCheckTime = 0; // 初始化上次检查Boss生成的时间为0，确保第一次检查在30秒后
@@ -630,6 +903,15 @@ let gameWinner = null; // 游戏获胜者
 let finalBattleStarted = false; // 是否已开始决战
 let lastCircleDamageTime = 0; // 上次决赛圈伤害时间
 
+// 地形相关变量
+let currentTerrains = []; // 当前选择的地形
+let terrainAreas = []; // 地形区域数组
+let playerBubbles = { player1: 3, player2: 3 }; // 玩家气泡数量
+let lastBubbleLossTime = { player1: 0, player2: 0 }; // 上次失去气泡时间
+let playerInGrass = { player1: false, player2: false }; // 玩家是否在草丛中
+let grassCooldown = { player1: 0, player2: 0 }; // 草丛冷却时间
+let enemyQuestionMarks = []; // 敌人问号状态
+
 // 生成敌人
 canvas.width = window.innerWidth * 0.8;
 canvas.height = window.innerHeight * 0.8;
@@ -684,7 +966,8 @@ function generateEnemy(type, targetPlayer = player) { // targetPlayer 默认为 
         tickDamageStartTime: 0,
         targetPlayer: targetPlayer, // 添加目标玩家属性
         type: type, // 添加敌人类型
-        lastShootTime: 0 // 添加上次射击时间（紫色敌人需要）
+        lastShootTime: 0, // 添加上次射击时间（紫色敌人需要）
+        canShoot: true // 初始化射击能力
     };
     enemies.push(enemy);
 }
@@ -733,9 +1016,9 @@ const MINE_COUNTDOWN = 3000; // 3秒倒计时
 // 旋转射击技能常量 // 10秒持续时间
 // 旋转射击冷却时间已在前面定义,这里删除重复声明
 const ROTATE_SHOOT_INTERVAL = 40; // 0.2秒发射一次
-const ROTATE_SHOOT_DAMAGE = 20; // 子弹伤害
-const ROTATE_SHOOT_SPEED = 8; // 子弹速度
-const ROTATE_SHOOT_DURATION = 10000; // 10秒持续时间
+const ROTATE_SHOOT_DAMAGE = 25; // 子弹伤害
+const ROTATE_SHOOT_SPEED = 10; // 子弹速度
+const ROTATE_SHOOT_DURATION = 5000; // 10秒持续时间
 const ROTATE_SHOOT_RADIUS = 5; // 子弹半径，使其变小
 
 // 敌人状态常量
@@ -775,11 +1058,20 @@ const FINAL_CIRCLE_DAMAGE = 5; // 决赛圈伤害
 const FINAL_CIRCLE_DAMAGE_INTERVAL = 1000; // 决赛圈伤害间隔（毫秒）
 const PVP_DAMAGE = 10; // 玩家互相攻击伤害
 const FINAL_CIRCLE_MIN_RADIUS = 80; // 决赛圈最小半径（稍微小一点增加紧张感）
+
+// 地形相关常量
+const SHALLOW_WATER_SPEED_REDUCTION = 0.3; // 浅水速度减少70%
+const DEEP_WATER_SPEED_REDUCTION = 0.4; // 深水速度减少60%
+const DEEP_WATER_BUBBLE_INTERVAL = 5000; // 深水气泡消失间隔（5秒）
+const DEEP_WATER_DAMAGE = 2; // 深水伤害
+const LAVA_DAMAGE = 5; // 岩浆伤害
+const GRASS_COOLDOWN_TIME = 20000; // 草丛冷却时间（20秒）
+const TERRAIN_AREA_SIZE = 150; // 地形区域大小
 // 获取画布和上下文
 
 
 
-function init(difficulty, mode) {
+function init(difficulty, mode, terrains = []) {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     // const ROTATE_SHOOT_RADIUS = canvas.width / 100; // 子弹半径
@@ -949,6 +1241,19 @@ function init(difficulty, mode) {
     grenades = [];
     mines = [];
     explosions = [];
+    
+    // 初始化地形区域
+    terrainAreas = [];
+    if (terrains.length > 0) {
+        generateTerrainAreas(terrains);
+    }
+    
+    // 重置地形相关状态
+    playerBubbles = { player1: 3, player2: 3 };
+    lastBubbleLossTime = { player1: 0, player2: 0 };
+    playerInGrass = { player1: false, player2: false };
+    grassCooldown = { player1: 0, player2: 0 };
+    enemyQuestionMarks = [];
 
     // 初始生成敌人 (使用调整后的参数)
     if (mode === 'multi') {
@@ -993,6 +1298,285 @@ function init(difficulty, mode) {
     canvas.addEventListener('click', handleMouseClick);
     
     // 加载README内容
+}
+
+// 生成地形区域函数
+function generateTerrainAreas(terrains) {
+    terrains.forEach(terrainType => {
+        let area;
+        do {
+            area = {
+                type: terrainType,
+                x: Math.random() * (canvas.width - TERRAIN_AREA_SIZE),
+                y: Math.random() * (canvas.height - TERRAIN_AREA_SIZE),
+                width: TERRAIN_AREA_SIZE,
+                height: TERRAIN_AREA_SIZE
+            };
+        } while (isOverlapping(area));
+        
+        terrainAreas.push(area);
+    });
+}
+
+// 检查地形区域是否重叠
+function isOverlapping(newArea) {
+    return terrainAreas.some(area => {
+        return newArea.x < area.x + area.width &&
+               newArea.x + newArea.width > area.x &&
+               newArea.y < area.y + area.height &&
+               newArea.y + newArea.height > area.y;
+    });
+}
+
+// 检查玩家是否在特定地形中
+function getPlayerTerrain(player) {
+    for (let area of terrainAreas) {
+        if (player.x < area.x + area.width &&
+            player.x + player.width > area.x &&
+            player.y < area.y + area.height &&
+            player.y + player.height > area.y) {
+            return area.type;
+        }
+    }
+    return null;
+}
+
+// 检查敌人是否在特定地形中
+function getEnemyTerrain(enemy) {
+    for (let area of terrainAreas) {
+        if (enemy.x < area.x + area.width &&
+            enemy.x + enemy.width > area.x &&
+            enemy.y < area.y + area.height &&
+            enemy.y + enemy.height > area.y) {
+            return area.type;
+        }
+    }
+    return null;
+}
+
+// 处理地形效果
+function handleTerrainEffects() {
+    const currentTime = Date.now();
+    
+    // 处理玩家1地形效果
+    handlePlayerTerrainEffects(player, 'player1', currentTime);
+    
+    // 处理玩家2地形效果（如果存在）
+    if (player2) {
+        handlePlayerTerrainEffects(player2, 'player2', currentTime);
+    }
+    
+    // 处理敌人地形效果
+    enemies.forEach(enemy => {
+        handleEnemyTerrainEffects(enemy, currentTime);
+    });
+}
+
+// 处理玩家地形效果
+function handlePlayerTerrainEffects(player, playerId, currentTime) {
+    const terrain = getPlayerTerrain(player);
+    
+    // 重置速度
+    let speedMultiplier = 1;
+    
+    if (terrain) {
+        switch (terrain) {
+            case 'shallow':
+                speedMultiplier = SHALLOW_WATER_SPEED_REDUCTION;
+                break;
+            case 'deep':
+                speedMultiplier = DEEP_WATER_SPEED_REDUCTION;
+                // 处理气泡逻辑
+                if (currentTime - lastBubbleLossTime[playerId] >= DEEP_WATER_BUBBLE_INTERVAL) {
+                    if (playerBubbles[playerId] > 0) {
+                        playerBubbles[playerId]--;
+                        lastBubbleLossTime[playerId] = currentTime;
+                    }
+                }
+                // 如果没有气泡了，持续扣血
+                if (playerBubbles[playerId] === 0) {
+                    if (currentTime - lastBubbleLossTime[playerId] >= 1000) {
+                        player.health -= DEEP_WATER_DAMAGE;
+                        lastBubbleLossTime[playerId] = currentTime;
+                    }
+                }
+                break;
+            case 'lava':
+                // 岩浆：移动速度大幅减少，持续扣血
+                speedMultiplier = 0.2; // 减少80%移动速度
+                if (currentTime - (player.lastLavaDamage || 0) >= 1000) {
+                    player.health -= LAVA_DAMAGE;
+                    player.lastLavaDamage = currentTime;
+                }
+                break;
+            case 'grass':
+                // 草丛：检查冷却时间
+                if (currentTime - grassCooldown[playerId] >= GRASS_COOLDOWN_TIME) {
+                    playerInGrass[playerId] = true;
+                    // 设置敌人问号状态
+                    enemies.forEach(enemy => {
+                        if (!enemy.questionMark && !enemy.isDead) {
+                            enemy.questionMark = true;
+                            enemy.canShoot = false;
+                            enemy.isStunned = true; // 禁用移动
+                        }
+                    });
+                }
+                break;
+        }
+    } else {
+        // 离开地形时重置状态
+        if (playerInGrass[playerId]) {
+            playerInGrass[playerId] = false;
+            grassCooldown[playerId] = currentTime;
+            // 触发敌人感叹号
+            triggerEnemyExclamation();
+        }
+        // 离开深水时重置气泡
+        if (playerBubbles[playerId] < 3) {
+            playerBubbles[playerId] = 3;
+        }
+    }
+    
+    // 应用速度修正
+    player.currentSpeedMultiplier = speedMultiplier;
+}
+
+// 处理敌人地形效果
+function handleEnemyTerrainEffects(enemy, currentTime) {
+    const terrain = getEnemyTerrain(enemy);
+    
+    if (terrain) {
+        switch (terrain) {
+            case 'shallow':
+                enemy.speedMultiplier = SHALLOW_WATER_SPEED_REDUCTION;
+                break;
+            case 'deep':
+                enemy.speedMultiplier = DEEP_WATER_SPEED_REDUCTION;
+                // 敌人进入深水立即扣血
+                if (!enemy.inDeepWater) {
+                    enemy.health -= DEEP_WATER_DAMAGE;
+                    enemy.inDeepWater = true;
+                }
+                break;
+            case 'lava':
+                enemy.speedMultiplier = 0.2; // 减少80%移动速度
+                if (currentTime - (enemy.lastLavaDamage || 0) >= 1000) {
+                    enemy.health -= LAVA_DAMAGE;
+                    enemy.lastLavaDamage = currentTime;
+                }
+                break;
+            case 'grass':
+                enemy.speedMultiplier = 1;
+                break;
+        }
+    } else {
+        enemy.speedMultiplier = 1;
+        enemy.inDeepWater = false;
+    }
+}
+
+// 触发敌人感叹号效果
+function triggerEnemyExclamation() {
+    enemies.forEach(enemy => {
+        if (enemy.questionMark && !enemy.isDead) {
+            enemy.questionMark = false;
+            enemy.exclamationMark = true;
+            enemy.exclamationStartTime = Date.now();
+            setTimeout(() => {
+                if (!enemy.isDead) {
+                    enemy.exclamationMark = false;
+                    enemy.canShoot = true;
+                    enemy.isStunned = false; // 恢复移动
+                }
+            }, 1000);
+        }
+    });
+}
+
+// 检查玩家技能使用时是否在草丛中
+function checkGrassSkillTrigger(player, playerId) {
+    if (playerInGrass[playerId]) {
+        triggerEnemyExclamation();
+        playerInGrass[playerId] = false;
+        grassCooldown[playerId] = Date.now();
+    }
+}
+
+// 绘制地形区域
+function drawTerrainAreas() {
+    terrainAreas.forEach(area => {
+        ctx.save();
+        
+        switch (area.type) {
+            case 'shallow':
+                // 浅水 - 浅蓝色
+                ctx.fillStyle = 'rgba(135, 206, 235, 0.6)';
+                break;
+            case 'deep':
+                // 深水 - 深蓝色
+                ctx.fillStyle = 'rgba(0, 100, 200, 0.7)';
+                break;
+            case 'lava':
+                // 岩浆 - 红橙色
+                ctx.fillStyle = 'rgba(255, 69, 0, 0.8)';
+                break;
+            case 'grass':
+                // 草丛 - 绿色
+                ctx.fillStyle = 'rgba(34, 139, 34, 0.6)';
+                break;
+        }
+        
+        ctx.fillRect(area.x, area.y, area.width, area.height);
+        
+        // 绘制边框
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(area.x, area.y, area.width, area.height);
+        
+        ctx.restore();
+    });
+}
+
+// 绘制玩家气泡（深水效果）
+function drawPlayerBubbles(player, playerId) {
+    const bubbleCount = playerBubbles[playerId] || 0;
+    if (bubbleCount > 0) {
+        for (let i = 0; i < bubbleCount; i++) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(173, 216, 230, 0.8)';
+            ctx.beginPath();
+            const bubbleX = player.x + player.width / 2 + (i - 1) * 15;
+            const bubbleY = player.y - 20 - i * 5;
+            ctx.arc(bubbleX, bubbleY, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0, 100, 200, 0.6)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.restore();
+        }
+    }
+}
+
+// 绘制敌人状态图标（问号/感叹号）
+function drawEnemyStatusIcons() {
+    enemies.forEach(enemy => {
+        if (enemy.questionMark) {
+            ctx.save();
+            ctx.fillStyle = 'yellow';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('?', enemy.x + enemy.width / 2, enemy.y - 10);
+            ctx.restore();
+        } else if (enemy.exclamationMark) {
+            ctx.save();
+            ctx.fillStyle = 'red';
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('!', enemy.x + enemy.width / 2, enemy.y - 10);
+            ctx.restore();
+        }
+    });
 }
 
 
@@ -1269,10 +1853,13 @@ function updatePlayerPosition(p) {
         const oldX = p.x;
         const oldY = p.y;
         
-        if (p.moveUp) p.y -= p.speed;
-        if (p.moveDown) p.y += p.speed;
-        if (p.moveLeft) p.x -= p.speed;
-        if (p.moveRight) p.x += p.speed;
+        // 应用地形速度修正
+        const effectiveSpeed = p.speed * (p.currentSpeedMultiplier || 1);
+        
+        if (p.moveUp) p.y -= effectiveSpeed;
+        if (p.moveDown) p.y += effectiveSpeed;
+        if (p.moveLeft) p.x -= effectiveSpeed;
+        if (p.moveRight) p.x += effectiveSpeed;
 
         // 边界检查
         p.x = Math.max(0, Math.min(canvas.width - p.width, p.x));
@@ -1312,6 +1899,10 @@ function handlePlayerGrenade(p, targetX, targetY) {
         }
         return;
     }
+    
+    // 检查草丛技能触发
+    const playerId = p === player ? 'player1' : 'player2';
+    checkGrassSkillTrigger(p, playerId);
 
     // 如果没有提供目标坐标，使用玩家附近的随机位置（用于键盘控制）
     if (targetX === undefined || targetY === undefined) {
@@ -1488,8 +2079,10 @@ function updateEnemies() {
                 const distance = Math.sqrt(dx * dx + dy * dy);
     
                 if (distance > 0) {
-                    enemy.x += (dx / distance) * enemy.speed;
-                    enemy.y += (dy / distance) * enemy.speed;
+                    // 应用地形速度修正
+                    const effectiveSpeed = enemy.speed * (enemy.speedMultiplier || 1);
+                    enemy.x += (dx / distance) * effectiveSpeed;
+                    enemy.y += (dy / distance) * effectiveSpeed;
                 }
             }
 
@@ -1503,7 +2096,7 @@ function updateEnemies() {
                     if (Math.floor(gameElapsedTime / 1000) !== Math.floor((gameElapsedTime - 16) / 1000)) {
                         console.log(`紫色敌人冷却中，剩余 ${remainingCooldown} 秒`);
                     }
-                } else if (currentTime - enemy.lastShootTime >= PURPLE_ENEMY_SHOOT_INTERVAL) {
+                } else if (currentTime - enemy.lastShootTime >= PURPLE_ENEMY_SHOOT_INTERVAL && enemy.canShoot !== false) {
                     // 选择最近的玩家作为目标
                     let targetPlayer = player;
                     let minDistance = Math.sqrt(Math.pow(player.x - enemy.x, 2) + Math.pow(player.y - enemy.y, 2));
@@ -1539,7 +2132,7 @@ function updateEnemies() {
                 }
             } else if (enemy.type === 'red') {
                 // 红色敌人射击逻辑
-                if (gameElapsedTime >= 3000 && currentTime - enemy.lastShootTime >= RED_ENEMY_SHOOT_INTERVAL) {
+                if (gameElapsedTime >= 3000 && currentTime - enemy.lastShootTime >= RED_ENEMY_SHOOT_INTERVAL && enemy.canShoot !== false) {
                     // 选择最近的玩家作为目标
                     let targetPlayer = player;
                     let minDistance = Math.sqrt(Math.pow(player.x - enemy.x, 2) + Math.pow(player.y - enemy.y, 2));
@@ -2269,6 +2862,10 @@ function activateRotateShoot(p) {
         }
         return;
     }
+    
+    // 检查草丛技能触发
+    const playerId = p === player ? 'player1' : 'player2';
+    checkGrassSkillTrigger(p, playerId);
 
     // 直接激活旋转射击，不进行充能
     p.isChargingRotateShoot = false; // 确保充能状态为false
@@ -2892,6 +3489,9 @@ function gameLoop() {
         updatePurpleEnemyBullets(); // 更新紫色敌人子弹
         updateRedEnemyBullets(); // 更新红色敌人子弹
         updateMines();
+        
+        // 处理地形效果
+        handleTerrainEffects();
 
         // 处理敌人持续扣血
         enemies.forEach(enemy => {
@@ -3001,11 +3601,15 @@ function gameLoop() {
     }
     
     // 绘制游戏元素
+    drawTerrainAreas(); // 绘制地形区域
     drawPlayer(player);
+    drawPlayerBubbles(player, 'player1'); // 绘制玩家1气泡
     if (player2) {
         drawPlayer(player2);
+        drawPlayerBubbles(player2, 'player2'); // 绘制玩家2气泡
     }
     drawEnemies();
+    drawEnemyStatusIcons(); // 绘制敌人状态图标
     drawMines();
     drawBullets();
     drawGrenades(player);
@@ -3546,6 +4150,147 @@ function returnToLobby() {
     document.getElementById('welcomeScreen').style.display = 'flex';
     document.getElementById('gameCanvas').style.filter = 'blur(5px)';
     
+    showSuggestionButton(); // 显示建议按钮
+    
     console.log("返回大厅！");
 }
+
+// 建议功能相关代码
+let suggestionStorage = [];
+
+// 初始化建议功能
+function initSuggestionFeature() {
+    const suggestionButton = document.getElementById('suggestionButton');
+    const suggestionModal = document.getElementById('suggestionModal');
+    const suggestionTextarea = document.getElementById('suggestionTextarea');
+    const submitSuggestionBtn = document.getElementById('submitSuggestionBtn');
+    const cancelSuggestionBtn = document.getElementById('cancelSuggestionBtn');
+    const suggestionNotification = document.getElementById('suggestionNotification');
+    
+    // 点击建议按钮打开弹窗
+    suggestionButton.addEventListener('click', function() {
+        suggestionModal.style.display = 'block';
+        suggestionTextarea.value = '';
+        suggestionTextarea.focus();
+    });
+    
+    // 取消按钮
+    cancelSuggestionBtn.addEventListener('click', function() {
+        suggestionModal.style.display = 'none';
+    });
+    
+    // 点击弹窗外部关闭
+    suggestionModal.addEventListener('click', function(e) {
+        if (e.target === suggestionModal) {
+            suggestionModal.style.display = 'none';
+        }
+    });
+    
+    // 提交建议
+    submitSuggestionBtn.addEventListener('click', function() {
+        const suggestionText = suggestionTextarea.value.trim();
+        if (suggestionText === '') {
+            alert('请输入建议内容！');
+            return;
+        }
+        
+        // 存储建议
+        const suggestion = {
+            id: Date.now(),
+            content: suggestionText,
+            timestamp: new Date().toLocaleString()
+        };
+        suggestionStorage.push(suggestion);
+        
+        // 显示通知给开发者
+        showSuggestionNotification(suggestion);
+        
+        // 关闭弹窗
+        suggestionModal.style.display = 'none';
+        
+        // 显示成功提示
+        alert('感谢您的建议！已成功提交。');
+        
+        // 在控制台输出建议（开发者可以看到）
+        console.log('收到用户建议:', suggestion);
+    });
+    
+    // ESC键关闭弹窗
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && suggestionModal.style.display === 'block') {
+            suggestionModal.style.display = 'none';
+        }
+    });
+}
+
+// 显示建议通知
+function showSuggestionNotification(suggestion) {
+    const notification = document.getElementById('suggestionNotification');
+    const isLong = suggestion.content.length > 20;
+    const shortText = suggestion.content.substring(0, 20);
+    
+    let notificationHTML;
+    if (isLong) {
+        notificationHTML = `
+            <div class="notification-content">
+                <div class="notification-text">
+                    有一位用户给你了"<span id="suggestionPreview">${shortText}...</span>"
+                    <span id="suggestionFull" style="display: none;">${suggestion.content}</span>
+                    <button class="show-full-button" id="showFullBtn" onclick="toggleSuggestionText()">显示全文</button>
+                    的建议
+                </div>
+                <button class="know-button" onclick="hideSuggestionNotification()">知道了</button>
+            </div>
+        `;
+    } else {
+        notificationHTML = `
+            <div class="notification-content">
+                <div class="notification-text">有一位用户给你了"${suggestion.content}"的建议</div>
+                <button class="know-button" onclick="hideSuggestionNotification()">知道了</button>
+            </div>
+        `;
+    }
+    
+    notification.innerHTML = notificationHTML;
+    notification.style.display = 'block';
+}
+
+// 切换建议文本显示
+function toggleSuggestionText() {
+    const preview = document.getElementById('suggestionPreview');
+    const full = document.getElementById('suggestionFull');
+    const btn = document.getElementById('showFullBtn');
+    
+    if (preview.style.display === 'none') {
+        preview.style.display = 'inline';
+        full.style.display = 'none';
+        btn.textContent = '显示全文';
+    } else {
+        preview.style.display = 'none';
+        full.style.display = 'inline';
+        btn.textContent = '收起';
+    }
+}
+
+// 隐藏建议通知
+function hideSuggestionNotification() {
+    const notification = document.getElementById('suggestionNotification');
+    notification.style.display = 'none';
+}
+
+// 在游戏开始时隐藏建议按钮
+function hideSuggestionButton() {
+    document.getElementById('suggestionButton').style.display = 'none';
+}
+
+// 在返回大厅时显示建议按钮
+function showSuggestionButton() {
+    document.getElementById('suggestionButton').style.display = 'block';
+}
+
+// 页面加载完成后初始化建议功能
+document.addEventListener('DOMContentLoaded', function() {
+    initSuggestionFeature();
+});
+
 </script>
