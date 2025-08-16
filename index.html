@@ -26,7 +26,7 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-image: url('https://cdn.yiranlaoshi.com/video/1754967658551-pasted-image-1754967658551.png');
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -388,20 +388,12 @@
         <div id="loginContainer">
             <div id="loginTitle">欢迎到：超级方块！</div>
             
-            <!-- 登录提示信息 -->
-            <div style="background-color: #e8f4fd; border: 1px solid #bee5eb; border-radius: 8px; padding: 15px; margin-bottom: 20px; text-align: center; font-size: 14px; color: #0c5460; max-width: 350px;">
-                <h4 style="margin: 0 0 10px 0; color: #0c5460;">💡 快速体验提示</h4>
-                <p style="margin: 5px 0;"><strong>默认测试账户：</strong></p>
-                <p style="margin: 5px 0;">ID: <span style="background-color: #d1ecf1; padding: 2px 8px; border-radius: 3px; font-family: monospace; font-weight: bold;">00000000</span></p>
-                <p style="margin: 5px 0;">密码: <span style="background-color: #d1ecf1; padding: 2px 8px; border-radius: 3px; font-family: monospace; font-weight: bold;">993966</span></p>
-                <p style="margin: 10px 0 5px 0; font-size: 12px; color: #6c757d;">直接复制粘贴即可快速登录体验游戏</p>
-            </div>
             
             <!-- 登录表单 -->
             <div id="loginForm" class="loginForm">
                 <input type="text" id="loginId" class="loginInput" placeholder="请输入您的8位ID" maxlength="8">
                 <input type="password" id="loginPassword" class="loginInput" placeholder="请输入6位方方码（密码）" maxlength="6">
-                <button id="loginBtn" class="loginButton" onclick="alert('按钮被点击了！'); console.log('直接onclick事件触发');">登录</button>
+                <button id="loginBtn" class="loginButton">登录</button>
                 <button id="showRegisterBtn" class="loginButton secondary">注册新账户</button>
                 <div style="margin-top: 15px; font-size: 12px; color: #6c757d; text-align: center;">
                     <p style="margin: 5px 0;">💡 提示：按回车键也可以快速登录</p>
@@ -562,11 +554,6 @@
                     handleLogin();
                 });
                 console.log('loginBtn事件绑定完成');
-                
-                // 测试按钮是否可点击
-                loginBtn.onclick = function() {
-                    console.log('onclick事件触发');
-                };
             } else {
                 console.error('loginBtn元素未找到！');
             }
@@ -614,83 +601,160 @@
         
         function handleLogin() {
             console.log('handleLogin函数被调用');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            // 禁用按钮并显示加载状态
+            if (loginBtn) {
+                loginBtn.disabled = true;
+                loginBtn.style.backgroundColor = '#cccccc';
+                loginBtn.style.cursor = 'not-allowed';
+                loginBtn.textContent = '登录中...';
+                
+                // 设置一个备用的重置机制，防止按钮永远卡住
+                setTimeout(() => {
+                    console.log('备用重置机制触发');
+                    if (loginBtn.textContent === '登录中...') {
+                        console.log('检测到按钮仍在加载状态，强制重置');
+                        resetLoginButton();
+                    }
+                }, 3000); // 3秒后强制重置
+            }
+            
             const id = document.getElementById('loginId').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
             
             console.log('输入的ID:', id, '密码:', password);
             console.log('当前用户数据:', users);
             
-            if (!id || !password) {
-                alert('请输入ID和密码！');
-                return;
-            }
+            // 模拟异步处理
+            console.log('开始执行setTimeout');
+            console.log('当前时间:', new Date().toLocaleTimeString());
             
-            const user = users.find(u => u.id === id && u.password === password);
-            if (user) {
-                console.log('登录成功，用户:', user);
-                currentUser = user;
-                startGame();
-            } else {
-                console.log('登录失败，用户不存在或密码错误');
-                alert('ID或密码错误！');
+            setTimeout(() => {
+                console.log('setTimeout回调函数开始执行');
+                console.log('回调执行时间:', new Date().toLocaleTimeString());
+                if (!id || !password) {
+                    console.log('输入验证失败：ID或密码为空');
+                    alert('请输入ID和密码！');
+                    resetLoginButton();
+                    return;
+                }
+                
+                console.log('开始查找用户，查找条件：', {id, password});
+                const user = users.find(u => u.id === id && u.password === password);
+                console.log('查找结果：', user);
+                
+                if (user) {
+                    console.log('登录成功，用户:', user);
+                    currentUser = user;
+                    console.log('即将调用startGame函数');
+                    startGame();
+                    console.log('startGame函数调用完成');
+                    // 登录成功后不重置按钮，因为界面已经切换
+                } else {
+                    console.log('登录失败，用户不存在或密码错误');
+                    alert('ID或密码错误！');
+                    resetLoginButton();
+                }
+                console.log('setTimeout回调函数执行完成');
+            }, 500); // 500ms延迟模拟网络请求
+        }
+        
+        function resetLoginButton() {
+            const loginBtn = document.getElementById('loginBtn');
+            if (loginBtn) {
+                loginBtn.disabled = false;
+                loginBtn.style.backgroundColor = '';
+                loginBtn.style.cursor = 'pointer';
+                loginBtn.textContent = '登录';
             }
         }
         
         function handleRegister() {
+            const registerBtn = document.getElementById('registerBtn');
+            
+            // 禁用按钮并显示加载状态
+            if (registerBtn) {
+                registerBtn.disabled = true;
+                registerBtn.style.backgroundColor = '#cccccc';
+                registerBtn.style.cursor = 'not-allowed';
+                registerBtn.textContent = '注册中...';
+            }
+            
             const name = document.getElementById('registerName').value.trim();
             const password = document.getElementById('registerPassword').value.trim();
             
-            if (!name || !password) {
-                alert('请输入名字和密码！');
-                return;
-            }
-            
-            if (password.length !== 6) {
-                alert('方方码必须是6位数字！');
-                return;
-            }
-            
-            if (!/^\d{6}$/.test(password)) {
-                alert('方方码只能包含数字！');
-                return;
-            }
-            
-            // 生成8位ID
-            const newId = nextUserId.toString().padStart(8, '0');
-            
-            // 检查ID是否已存在
-            if (users.find(u => u.id === newId)) {
-                nextUserId++;
-                localStorage.setItem('nextUserId', nextUserId.toString());
-                handleRegister(); // 递归调用直到找到可用ID
-                return;
-            }
-            
-            // 创建新用户
-            const newUser = {
-                name: name,
-                id: newId,
-                password: password
-            };
-            
-            users.push(newUser);
-            nextUserId++;
-            
-            // 保存到localStorage
-            localStorage.setItem('gameUsers', JSON.stringify(users));
-            localStorage.setItem('nextUserId', nextUserId.toString());
-            
-            // 显示ID弹窗
-            showIdDisplay(newId);
-            
-            // 清空表单
-            document.getElementById('registerName').value = '';
-            document.getElementById('registerPassword').value = '';
-            
-            // 3秒后返回登录界面
+            // 模拟异步处理
             setTimeout(() => {
-                showLoginForm();
-            }, 3000);
+                if (!name || !password) {
+                    alert('请输入名字和密码！');
+                    resetRegisterButton();
+                    return;
+                }
+                
+                if (password.length !== 6) {
+                    alert('方方码必须是6位数字！');
+                    resetRegisterButton();
+                    return;
+                }
+                
+                if (!/^\d{6}$/.test(password)) {
+                    alert('方方码只能包含数字！');
+                    resetRegisterButton();
+                    return;
+                }
+                
+                // 生成8位ID
+                const newId = nextUserId.toString().padStart(8, '0');
+                
+                // 检查ID是否已存在
+                if (users.find(u => u.id === newId)) {
+                    nextUserId++;
+                    localStorage.setItem('nextUserId', nextUserId.toString());
+                    resetRegisterButton();
+                    handleRegister(); // 递归调用直到找到可用ID
+                    return;
+                }
+                
+                // 创建新用户
+                const newUser = {
+                    name: name,
+                    id: newId,
+                    password: password
+                };
+                
+                users.push(newUser);
+                nextUserId++;
+                
+                // 保存到localStorage
+                localStorage.setItem('gameUsers', JSON.stringify(users));
+                localStorage.setItem('nextUserId', nextUserId.toString());
+                
+                // 显示ID弹窗
+                showIdDisplay(newId);
+                
+                // 清空表单
+                document.getElementById('registerName').value = '';
+                document.getElementById('registerPassword').value = '';
+                
+                // 重置按钮状态
+                resetRegisterButton();
+                
+                // 3秒后返回登录界面
+                setTimeout(() => {
+                    showLoginForm();
+                }, 3000);
+            }, 800); // 800ms延迟模拟网络请求
+        }
+        
+        function resetRegisterButton() {
+            const registerBtn = document.getElementById('registerBtn');
+            if (registerBtn) {
+                registerBtn.disabled = false;
+                registerBtn.style.backgroundColor = '';
+                registerBtn.style.cursor = 'pointer';
+                registerBtn.textContent = '注册';
+            }
         }
         
         function showIdDisplay(id) {
@@ -725,7 +789,18 @@
                 welcomeScreen.style.display = 'flex';
                 welcomeScreen.style.visibility = 'visible';
                 welcomeScreen.style.zIndex = '100';
-                console.log('游戏界面已显示');
+                welcomeScreen.style.position = 'fixed';
+                welcomeScreen.style.top = '0';
+                welcomeScreen.style.left = '0';
+                welcomeScreen.style.width = '100%';
+                welcomeScreen.style.height = '100%';
+                welcomeScreen.style.backgroundColor = '#1a1a2e';
+                console.log('游戏界面已显示，样式已强制设置');
+                console.log('welcomeScreen当前样式:', {
+                    display: welcomeScreen.style.display,
+                    visibility: welcomeScreen.style.visibility,
+                    zIndex: welcomeScreen.style.zIndex
+                });
             } else {
                 console.error('找不到welcomeScreen元素');
             }
@@ -1069,7 +1144,7 @@
     document.getElementById('startGameBtn').addEventListener('click', function() {
         if (selectedDifficulty) {
             const mode = window.gameMode || 'single';
-            startGame(selectedDifficulty, mode, selectedTerrain);
+            startActualGame(selectedDifficulty, mode, selectedTerrain);
             window.gameMode = null; // 重置模式标记
             selectedDifficulty = null;
             selectedTerrain = [];
@@ -1081,7 +1156,7 @@
     });
 
     // 开始游戏函数
-    function startGame(difficulty, mode = 'single', terrains = []) { // mode: 'single' or 'multi', terrains: array of selected terrains
+    function startActualGame(difficulty, mode = 'single', terrains = []) { // mode: 'single' or 'multi', terrains: array of selected terrains
         document.getElementById('difficultyModal').style.display = 'none';
         document.getElementById('terrainModal').style.display = 'none';
         hideSuggestionButton(); // 隐藏建议按钮
@@ -4542,7 +4617,7 @@ function returnToLobby() {
     
     // 恢复大厅背景
     document.body.style.backgroundColor = '';
-    document.body.style.backgroundImage = "url('https://cdn.yiranlaoshi.com/video/1754967658551-pasted-image-1754967658551.png')";
+    document.body.style.background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
     
     // 显示欢迎界面
     document.getElementById('welcomeScreen').style.display = 'flex';
