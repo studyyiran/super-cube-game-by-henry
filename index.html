@@ -4366,32 +4366,41 @@ document.addEventListener('DOMContentLoaded', function() {
     // 简化的启动提示
     setTimeout(() => {
         console.log('\n🎮 游戏建议收集系统已启动');
-        console.log('📥 自动下载和剪贴板复制已启用');
-        console.log('💡 运行 setupSuggestionCollection() 查看所有收集方案');
-        console.log('🌐 快速配置 Webhook: setupWebhook("您的URL")');
+        console.log('📥 本地收集: 自动下载和剪贴板复制已启用');
         
         // 检查 Webhook 配置状态
         if (window.webhookUrl) {
-            console.log('✅ Webhook 已配置:', window.webhookUrl);
+            console.log('✅ 跨设备收集: Webhook 已配置 -', window.webhookUrl);
+        } else {
+            console.log('⚠️ 跨设备收集: 未配置 (建议只会保存在本地)');
+            console.log('🌐 启用跨设备收集: setupWebhook("您的URL")');
+            console.log('💡 获取免费URL: 访问 https://webhook.site/');
         }
+        
+        console.log('\n📋 查看所有选项: setupSuggestionCollection()');
     }, 1000);
 });
 
-// 方法1: 发送到免费的在线收集服务 (无需配置)
+// 方法1: 发送到免费的在线收集服务
 function sendToWebhook(suggestionText) {
-    // 使用免费的 webhook.site 服务收集数据
-    const webhookUrl = 'https://webhook.site/unique-url-here';
+    // 检查是否配置了 webhook URL
+    if (!window.webhookUrl) {
+        console.log('ℹ️ Webhook 未配置，跳过在线发送');
+        console.log('💡 配置方法: setupWebhook("您的URL")');
+        return;
+    }
     
     const data = {
         suggestion: suggestionText,
         timestamp: new Date().toISOString(),
         game: '对战游戏',
         userAgent: navigator.userAgent,
-        url: window.location.href
+        url: window.location.href,
+        deviceId: 'device_' + Date.now()
     };
     
-    // 发送到 webhook
-    fetch(webhookUrl, {
+    // 发送到配置的 webhook URL
+    fetch(window.webhookUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -4399,10 +4408,15 @@ function sendToWebhook(suggestionText) {
         body: JSON.stringify(data)
     })
     .then(response => {
-        console.log('✅ 建议已发送到 Webhook');
+        if (response.ok) {
+            console.log('✅ 建议已发送到 Webhook:', window.webhookUrl);
+        } else {
+            console.log('⚠️ Webhook 响应异常，但数据已发送');
+        }
     })
     .catch(error => {
-        console.log('ℹ️ Webhook 发送失败，数据已保存到本地');
+        console.log('❌ Webhook 发送失败:', error.message);
+        console.log('💡 请检查 URL 是否正确或网络连接');
     });
 }
 
