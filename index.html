@@ -196,16 +196,26 @@
          #suggestionNotification {
              position: fixed;
              top: 20px;
-             left: 50%;
-             transform: translateX(-50%);
-             background-color: #2ecc71;
+             right: 20px;
+             background: #4CAF50;
              color: white;
-             padding: 15px 25px;
-             border-radius: 5px;
-             z-index: 1001;
+             padding: 20px;
+             border-radius: 10px;
+             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
              display: none;
-             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-             max-width: 400px;
+             z-index: 1001;
+             max-width: 350px;
+             animation: slideIn 0.5s ease-out;
+         }
+         
+         #suggestionNotification.show {
+             display: block;
+             animation: slideIn 0.5s ease-out;
+         }
+         
+         @keyframes slideIn {
+             from { transform: translateX(100%); opacity: 0; }
+             to { transform: translateX(0); opacity: 1; }
          }
          
          #suggestionNotification .notification-content {
@@ -219,36 +229,7 @@
              flex: 1;
          }
          
-         #suggestionNotification .know-button {
-             background-color: rgba(255,255,255,0.2);
-             color: white;
-             border: 1px solid rgba(255,255,255,0.3);
-             padding: 5px 12px;
-             border-radius: 3px;
-             cursor: pointer;
-             font-size: 12px;
-             transition: background-color 0.3s ease;
-             white-space: nowrap;
-         }
-         
-         #suggestionNotification .know-button:hover {
-             background-color: rgba(255,255,255,0.3);
-         }
-         
-         #suggestionNotification .show-full-button {
-             background: none;
-             border: none;
-             color: #3498db;
-             text-decoration: underline;
-             cursor: pointer;
-             font-size: 12px;
-             margin: 0 5px;
-             padding: 0;
-         }
-         
-         #suggestionNotification .show-full-button:hover {
-             color: #2980b9;
-         }
+
     </style>
 </head>
 <body>
@@ -276,6 +257,11 @@
     
     <!-- 建议通知 -->
     <div id="suggestionNotification"></div>
+    
+    <!-- 开发者通知 -->
+    <div id="developerNotification" style="position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: none; z-index: 1000; max-width: 350px;">
+        <div id="developerNotificationContent"></div>
+    </div>
 
     <div id="welcomeScreen">
         <div id="welcomeMessage">欢迎玩家1号</div>
@@ -4288,33 +4274,25 @@ function initSuggestionFeature() {
 // 显示建议通知
 function showSuggestionNotification(suggestion) {
     const notification = document.getElementById('suggestionNotification');
-    const isLong = suggestion.content.length > 20;
-    const shortText = suggestion.content.substring(0, 20);
     
-    let notificationHTML;
-    if (isLong) {
-        notificationHTML = `
-            <div class="notification-content">
-                <div class="notification-text">
-                    您的建议"<span id="suggestionPreview">${shortText}...</span>"
-                    <span id="suggestionFull" style="display: none;">${suggestion.content}</span>
-                    <button class="show-full-button" id="showFullBtn" onclick="toggleSuggestionText()">显示全文</button>
-                    已成功提交
-                </div>
-                <button class="know-button" onclick="hideSuggestionNotification()">知道了</button>
-            </div>
-        `;
-    } else {
-        notificationHTML = `
-            <div class="notification-content">
-                <div class="notification-text">您的建议"${suggestion.content}"已成功提交</div>
-                <button class="know-button" onclick="hideSuggestionNotification()">知道了</button>
-            </div>
-        `;
+    // 显示发送成功通知
+    notification.innerHTML = `
+        <strong>✅ 建议发送成功！</strong><br>
+        <small>⏰ ${new Date().toLocaleString()}</small><br>
+        <button onclick="hideSuggestionNotification()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">知道了</button>
+    `;
+    
+    notification.className = 'show';
+    
+    // 如果启用了开发者模式，1秒后显示开发者收到的通知
+    if (isDeveloperMode) {
+        setTimeout(() => {
+            showDeveloperNotification({
+                suggestion: suggestion.content,
+                userAgent: navigator.userAgent
+            }, new Date().toISOString());
+        }, 1000);
     }
-    
-    notification.innerHTML = notificationHTML;
-    notification.style.display = 'block';
 }
 
 // 切换建议文本显示
@@ -4337,7 +4315,7 @@ function toggleSuggestionText() {
 // 隐藏建议通知
 function hideSuggestionNotification() {
     const notification = document.getElementById('suggestionNotification');
-    notification.style.display = 'none';
+    notification.className = '';
 }
 
 // 在游戏开始时隐藏建议按钮
@@ -4695,46 +4673,65 @@ function checkForNewSuggestions() {
 }
 
 function showDeveloperNotification(suggestionData, timestamp) {
-    const notification = document.getElementById('suggestionNotification');
+    const notification = document.getElementById('developerNotification');
+    const content = document.getElementById('developerNotificationContent');
     const deviceInfo = suggestionData.userAgent ? 
-        (suggestionData.userAgent.includes('Mobile') ? '📱 移动设备' : '💻 桌面设备') : '🖥️ 未知设备';
+        (suggestionData.userAgent.includes('Mobile') ? '📱 移动设备' : '💻 桌面设备') : '💻 桌面设备';
     
-    const isLong = suggestionData.suggestion.length > 20;
-    const shortText = suggestionData.suggestion.substring(0, 20);
+    const isLong = suggestionData.suggestion.length > 30;
+    const shortText = suggestionData.suggestion.substring(0, 30);
     const timeStr = new Date(timestamp).toLocaleString();
     
     let notificationHTML;
     if (isLong) {
         notificationHTML = `
-            <div class="notification-content">
-                <div class="notification-text">
-                    ${deviceInfo} 用户发来建议: "<span id="suggestionPreview">${shortText}...</span>"
-                    <span id="suggestionFull" style="display: none;">${suggestionData.suggestion}</span>
-                    <button class="show-full-button" id="showFullBtn" onclick="toggleSuggestionText()">显示全文</button>
-                    <br><small>⏰ ${timeStr}</small>
-                </div>
-                <button class="know-button" onclick="hideSuggestionNotification()">知道了</button>
-            </div>
+            <strong>${deviceInfo}用户发来建议:</strong><br>
+            "<span id="devSuggestionPreview">${shortText}...</span>"
+            <span id="devSuggestionFull" style="display: none;">${suggestionData.suggestion}</span>
+            <button onclick="toggleDevSuggestionText()" style="background: none; border: none; color: #ffffff; text-decoration: underline; cursor: pointer; font-size: 12px; margin: 0 5px; padding: 0;">显示全文</button><br>
+            <small>⏰ ${timeStr}</small><br>
+            <button onclick="hideDeveloperNotification()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">知道了</button>
         `;
     } else {
         notificationHTML = `
-            <div class="notification-content">
-                <div class="notification-text">
-                    ${deviceInfo} 用户发来建议: "${suggestionData.suggestion}"
-                    <br><small>⏰ ${timeStr}</small>
-                </div>
-                <button class="know-button" onclick="hideSuggestionNotification()">知道了</button>
-            </div>
+            <strong>${deviceInfo}用户发来建议:</strong><br>
+            "${suggestionData.suggestion}"<br>
+            <small>⏰ ${timeStr}</small><br>
+            <button onclick="hideDeveloperNotification()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">知道了</button>
         `;
     }
     
-    notification.innerHTML = notificationHTML;
+    content.innerHTML = notificationHTML;
     notification.style.display = 'block';
+    notification.style.animation = 'slideIn 0.5s ease-out';
     
     // 播放提示音（如果需要）
     console.log('🔔 收到新建议:', suggestionData.suggestion);
     console.log('📊 设备信息:', deviceInfo);
     console.log('⏰ 提交时间:', timeStr);
+}
+
+// 隐藏开发者通知
+function hideDeveloperNotification() {
+    const notification = document.getElementById('developerNotification');
+    notification.style.display = 'none';
+}
+
+// 切换开发者通知中的建议文本显示
+function toggleDevSuggestionText() {
+    const preview = document.getElementById('devSuggestionPreview');
+    const full = document.getElementById('devSuggestionFull');
+    const btn = event.target;
+    
+    if (preview.style.display === 'none') {
+        preview.style.display = 'inline';
+        full.style.display = 'none';
+        btn.textContent = '显示全文';
+    } else {
+        preview.style.display = 'none';
+        full.style.display = 'inline';
+        btn.textContent = '收起';
+    }
 }
 
 function showDeveloperModeStatus() {
@@ -4792,12 +4789,58 @@ function disableDeveloperMode() {
     console.log('🔧 开发者模式已关闭');
 }
 
+// 启用演示模式（无需真实webhook）
+function enableDemoMode() {
+    isDeveloperMode = true;
+    console.log('🎮 演示模式已启用');
+    console.log('💡 现在提交建议时，您将看到跨设备通知演示效果');
+    console.log('📱 建议提交后会显示"发送成功"，然后开发者端会收到通知');
+    
+    // 显示演示模式状态
+    const statusDiv = document.createElement('div');
+    statusDiv.id = 'demoModeStatus';
+    statusDiv.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 150, 255, 0.9);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 14px;
+        z-index: 10000;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    statusDiv.innerHTML = `
+        🎮 演示模式已启用<br>
+        <small>提交建议可体验跨设备通知</small><br>
+        <button onclick="disableDemoMode()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 4px; margin-top: 5px; cursor: pointer; font-size: 12px;">关闭</button>
+    `;
+    
+    // 移除旧的状态显示
+    const oldStatus = document.getElementById('demoModeStatus');
+    if (oldStatus) oldStatus.remove();
+    
+    document.body.appendChild(statusDiv);
+}
+
+function disableDemoMode() {
+    isDeveloperMode = false;
+    
+    const statusDiv = document.getElementById('demoModeStatus');
+    if (statusDiv) statusDiv.remove();
+    
+    console.log('🎮 演示模式已关闭');
+}
+
 // 导出全局函数供开发者使用
 window.setupSuggestionCollection = setupSuggestionCollection;
 window.setupWebhook = setupWebhook;
 window.setupFormspree = setupFormspree;
 window.enableDeveloperMode = enableDeveloperMode;
 window.disableDeveloperMode = disableDeveloperMode;
+window.enableDemoMode = enableDemoMode;
+window.disableDemoMode = disableDemoMode;
 window.setupEmailJS = setupEmailJS;
 window.setupGA = setupGoogleAnalytics;
 window.checkGA = checkGASetup;
