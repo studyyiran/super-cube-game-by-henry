@@ -4677,7 +4677,9 @@ function initSuggestionFeature() {
         const suggestion = {
             id: Date.now(),
             content: suggestionText,
-            timestamp: new Date().toLocaleString()
+            timestamp: new Date().toLocaleString(),
+            userId: currentUser ? currentUser.id : 'anonymous',
+            userName: currentUser ? currentUser.name : '匿名用户'
         };
         suggestionStorage.push(suggestion);
         
@@ -4903,7 +4905,13 @@ function sendToWebhook(suggestionText, customWebhookUrl = null) {
         game: '对战游戏',
         userAgent: navigator.userAgent,
         url: window.location.href,
-        deviceId: window.currentDeviceId
+        deviceId: window.currentDeviceId,
+        userId: currentUser ? currentUser.id : 'anonymous',
+        userName: currentUser ? currentUser.name : '匿名用户',
+        // 所有建议都发送给管理员账号00000000
+        targetUserId: '00000000',
+        originalUserId: currentUser ? currentUser.id : 'anonymous',
+        originalUserName: currentUser ? currentUser.name : '匿名用户'
     };
     
     // 发送到配置的 webhook URL
@@ -5398,10 +5406,165 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// 通过用户ID查看建议的功能
+function getSuggestionsByUserId(userId) {
+    console.log('🔍 查找用户ID为 ' + userId + ' 的建议:');
+    
+    const userSuggestions = suggestionStorage.filter(suggestion => 
+        suggestion.userId === userId
+    );
+    
+    if (userSuggestions.length === 0) {
+        console.log('❌ 未找到该用户的建议');
+        return [];
+    }
+    
+    console.log('✅ 找到 ' + userSuggestions.length + ' 条建议:');
+    userSuggestions.forEach((suggestion, index) => {
+        console.log(`${index + 1}. [${suggestion.timestamp}] ${suggestion.content}`);
+    });
+    
+    return userSuggestions;
+}
+
+// 通过用户名查看建议的功能
+function getSuggestionsByUserName(userName) {
+    console.log('🔍 查找用户名为 "' + userName + '" 的建议:');
+    
+    const userSuggestions = suggestionStorage.filter(suggestion => 
+        suggestion.userName === userName
+    );
+    
+    if (userSuggestions.length === 0) {
+        console.log('❌ 未找到该用户的建议');
+        return [];
+    }
+    
+    console.log('✅ 找到 ' + userSuggestions.length + ' 条建议:');
+    userSuggestions.forEach((suggestion, index) => {
+        console.log(`${index + 1}. [${suggestion.timestamp}] ${suggestion.content}`);
+    });
+    
+    return userSuggestions;
+}
+
+// 查看所有建议并按用户分组
+function getAllSuggestionsGroupedByUser() {
+    console.log('📊 所有建议按用户分组:');
+    
+    if (suggestionStorage.length === 0) {
+        console.log('❌ 暂无建议记录');
+        return {};
+    }
+    
+    const groupedSuggestions = {};
+    
+    suggestionStorage.forEach(suggestion => {
+        const key = `${suggestion.userName} (ID: ${suggestion.userId})`;
+        if (!groupedSuggestions[key]) {
+            groupedSuggestions[key] = [];
+        }
+        groupedSuggestions[key].push(suggestion);
+    });
+    
+    Object.keys(groupedSuggestions).forEach(userKey => {
+        console.log(`\n👤 ${userKey}:`);
+        groupedSuggestions[userKey].forEach((suggestion, index) => {
+            console.log(`   ${index + 1}. [${suggestion.timestamp}] ${suggestion.content}`);
+        });
+    });
+    
+    return groupedSuggestions;
+}
+
+// 删除特定用户的建议
+function deleteSuggestionsByUserId(userId) {
+    console.log('🗑️ 删除用户ID为 ' + userId + ' 的所有建议...');
+    
+    const initialCount = suggestionStorage.length;
+    suggestionStorage = suggestionStorage.filter(suggestion => 
+        suggestion.userId !== userId
+    );
+    
+    const deletedCount = initialCount - suggestionStorage.length;
+    
+    if (deletedCount > 0) {
+        console.log('✅ 已删除 ' + deletedCount + ' 条建议');
+    } else {
+        console.log('❌ 未找到该用户的建议');
+    }
+    
+    return deletedCount;
+}
+
+// 管理员查看所有建议功能（专为账号00000000设计）
+function getAdminSuggestions() {
+    console.log('👑 管理员建议汇总 (目标账号: 00000000):');
+    
+    if (suggestionStorage.length === 0) {
+        console.log('❌ 暂无建议记录');
+        return [];
+    }
+    
+    console.log('\n📊 所有用户建议汇总:');
+    suggestionStorage.forEach((suggestion, index) => {
+        const userInfo = suggestion.userId === 'anonymous' ? 
+            '匿名用户' : 
+            `${suggestion.userName} (ID: ${suggestion.userId})`;
+        console.log(`${index + 1}. [${suggestion.timestamp}] ${userInfo}: ${suggestion.content}`);
+    });
+    
+    console.log('\n📈 统计信息:');
+    const userStats = {};
+    suggestionStorage.forEach(suggestion => {
+        const key = suggestion.userId === 'anonymous' ? '匿名用户' : suggestion.userId;
+        userStats[key] = (userStats[key] || 0) + 1;
+    });
+    
+    Object.keys(userStats).forEach(userId => {
+        const userName = userId === '匿名用户' ? '匿名用户' : 
+            suggestionStorage.find(s => s.userId === userId)?.userName || '未知';
+        console.log(`   ${userName} (${userId}): ${userStats[userId]} 条建议`);
+    });
+    
+    return suggestionStorage;
+}
+
+// 检查当前用户是否为管理员
+function checkAdminAccess() {
+    if (currentUser && currentUser.id === '00000000') {
+        console.log('✅ 管理员权限确认！您可以使用 getAdminSuggestions() 查看所有建议');
+        return true;
+    } else {
+        console.log('❌ 非管理员账号，请使用账号00000000登录后查看');
+        return false;
+    }
+}
+
+// 使用说明
+function showSuggestionManagementHelp() {
+    console.log('\n📋 建议管理功能使用说明:');
+    console.log('\n🔍 查看功能:');
+    console.log('   getSuggestionsByUserId("用户ID")     - 查看指定用户ID的建议');
+    console.log('   getSuggestionsByUserName("用户名")   - 查看指定用户名的建议');
+    console.log('   getAllSuggestionsGroupedByUser()    - 查看所有建议并按用户分组');
+    console.log('\n👑 管理员功能 (仅限账号00000000):');
+    console.log('   getAdminSuggestions()               - 查看所有用户发送的建议汇总');
+    console.log('   checkAdminAccess()                  - 检查管理员权限');
+    console.log('\n🗑️ 管理功能:');
+    console.log('   deleteSuggestionsByUserId("用户ID") - 删除指定用户的所有建议');
+    console.log('\n💡 示例:');
+    console.log('   getSuggestionsByUserId("00000001")  - 查看ID为00000001的用户建议');
+    console.log('   getSuggestionsByUserName("张三")     - 查看用户名为张三的建议');
+    console.log('   getAdminSuggestions()               - 管理员查看所有建议');
+    console.log('\n📊 当前建议总数:', suggestionStorage.length);
+}
+
 // 添加页面加载测试
 console.log('JavaScript代码开始执行');
 window.addEventListener('load', function() {
     console.log('页面完全加载完成');
+    console.log('\n💡 提示: 输入 showSuggestionManagementHelp() 查看建议管理功能');
 });
 
 </script>
