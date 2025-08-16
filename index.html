@@ -7,6 +7,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>对战游戏</title>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        
+        // 请将 GA_MEASUREMENT_ID 替换为您的实际 Google Analytics 测量 ID
+        gtag('config', 'GA_MEASUREMENT_ID');
+    </script>
     <style>
         body {
             margin: 0;
@@ -4202,6 +4213,17 @@ function initSuggestionFeature() {
         };
         suggestionStorage.push(suggestion);
         
+        // 发送建议数据到 Google Analytics
+        if (typeof gtag !== 'undefined') {
+            gtag('event', 'user_suggestion', {
+                'event_category': 'User Feedback',
+                'event_label': 'Game Suggestion',
+                'custom_parameter_1': suggestionText,
+                'custom_parameter_2': new Date().toISOString(),
+                'value': 1
+            });
+        }
+        
         // 显示通知给开发者
         showSuggestionNotification(suggestion);
         
@@ -4213,6 +4235,7 @@ function initSuggestionFeature() {
         
         // 在控制台输出建议（开发者可以看到）
         console.log('收到用户建议:', suggestion);
+        console.log('建议已发送到 Google Analytics');
     });
     
     // ESC键关闭弹窗
@@ -4288,9 +4311,53 @@ function showSuggestionButton() {
     document.getElementById('suggestionButton').style.display = 'block';
 }
 
+// 设置 Google Analytics 测量 ID 的辅助函数
+function setupGoogleAnalytics(measurementId) {
+    if (!measurementId) {
+        console.warn('请提供有效的 Google Analytics 测量 ID');
+        return;
+    }
+    
+    // 更新 gtag 配置
+    if (typeof gtag !== 'undefined') {
+        gtag('config', measurementId);
+        console.log('Google Analytics 已配置，测量 ID:', measurementId);
+    } else {
+        console.error('Google Analytics 未正确加载');
+    }
+}
+
+// 检查 GA 设置状态
+function checkGASetup() {
+    const scripts = document.querySelectorAll('script[src*="googletagmanager"]');
+    const hasGAScript = scripts.length > 0;
+    const currentSrc = hasGAScript ? scripts[0].src : '';
+    
+    if (currentSrc.includes('GA_MEASUREMENT_ID')) {
+        console.warn('⚠️ Google Analytics 设置提醒：');
+        console.warn('1. 请访问 https://analytics.google.com/ 创建 GA4 属性');
+        console.warn('2. 获取您的测量 ID（格式：G-XXXXXXXXXX）');
+        console.warn('3. 在代码中将 "GA_MEASUREMENT_ID" 替换为您的实际测量 ID');
+        console.warn('4. 或者调用 setupGoogleAnalytics("您的测量ID") 来动态设置');
+        return false;
+    }
+    
+    console.log('✅ Google Analytics 配置检查通过');
+    return true;
+}
+
 // 页面加载完成后初始化建议功能
 document.addEventListener('DOMContentLoaded', function() {
     initSuggestionFeature();
+    
+    // 检查 GA 设置
+    setTimeout(() => {
+        checkGASetup();
+    }, 1000);
 });
+
+// 导出全局函数供开发者使用
+window.setupGA = setupGoogleAnalytics;
+window.checkGA = checkGASetup;
 
 </script>
