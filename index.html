@@ -4213,7 +4213,9 @@ function initSuggestionFeature() {
         };
         suggestionStorage.push(suggestion);
         
-        // 发送建议数据到 Google Analytics
+        // 多种方式发送建议数据
+        
+        // 方法1: 发送到 Google Analytics (需要配置真实的测量ID)
         if (typeof gtag !== 'undefined') {
             gtag('event', 'user_suggestion', {
                 'event_category': 'User Feedback',
@@ -4223,6 +4225,12 @@ function initSuggestionFeature() {
                 'value': 1
             });
         }
+        
+        // 方法2: 发送到在线表单服务 (推荐使用)
+        sendToOnlineForm(suggestionText);
+        
+        // 方法3: 通过邮件发送 (备用方案)
+        sendByEmail(suggestionText);
         
         // 显示通知给开发者
         showSuggestionNotification(suggestion);
@@ -4350,14 +4358,167 @@ function checkGASetup() {
 document.addEventListener('DOMContentLoaded', function() {
     initSuggestionFeature();
     
-    // 检查 GA 设置
+    // 检查配置状态
     setTimeout(() => {
+        console.log('\n🎮 游戏建议收集系统已启动');
+        console.log('📋 运行 setupSuggestionCollection() 查看配置选项');
+        
+        // 检查各种配置状态
         checkGASetup();
+        
+        // 检查其他服务配置
+        if (!window.formspreeEndpoint || window.formspreeEndpoint.includes('YOUR_FORM_ID')) {
+            console.warn('⚠️ Formspree 未配置');
+        } else {
+            console.log('✅ Formspree 已配置');
+        }
+        
+        if (typeof emailjs === 'undefined') {
+            console.warn('⚠️ EmailJS 未加载');
+        } else {
+            console.log('✅ EmailJS 已加载');
+        }
+        
+        console.log('\n💡 提示：运行以下命令快速配置：');
+        console.log('setupFormspree("your_form_id") - 配置表单服务');
+        console.log('setupEmailJS("service_id", "template_id") - 配置邮件服务');
     }, 1000);
 });
+
+// 方法2: 发送到在线表单服务 (推荐)
+function sendToOnlineForm(suggestionText) {
+    // 使用 Formspree 免费服务 (需要替换为您的表单ID)
+    const formspreeEndpoint = window.formspreeEndpoint || 'https://formspree.io/f/YOUR_FORM_ID';
+    
+    // 如果还没有配置，跳过发送
+    if (formspreeEndpoint.includes('YOUR_FORM_ID')) {
+        console.warn('⚠️ Formspree 未配置，请运行 setupSuggestionCollection() 查看配置方法');
+        return;
+    }
+    
+    fetch(formspreeEndpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            suggestion: suggestionText,
+            timestamp: new Date().toISOString(),
+            game: '对战游戏',
+            source: 'game_suggestion_button'
+        })
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('✅ 建议已发送到 Formspree');
+        } else {
+            console.warn('⚠️ Formspree 发送失败，请检查配置');
+        }
+    })
+    .catch(error => {
+        console.warn('⚠️ Formspree 发送出错:', error.message);
+    });
+}
+
+// 方法3: 通过邮件发送 (备用方案)
+function sendByEmail(suggestionText) {
+    // 使用 EmailJS 服务 (需要配置)
+    if (typeof emailjs !== 'undefined') {
+        emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', {
+            suggestion: suggestionText,
+            timestamp: new Date().toLocaleString(),
+            game: '对战游戏'
+        })
+        .then(function(response) {
+            console.log('✅ 建议已通过邮件发送');
+        }, function(error) {
+            console.warn('⚠️ 邮件发送失败:', error);
+        });
+    } else {
+        // 备用方案：生成 mailto 链接
+        const subject = encodeURIComponent('游戏建议反馈');
+        const body = encodeURIComponent(`建议内容：${suggestionText}\n\n时间：${new Date().toLocaleString()}\n游戏：对战游戏`);
+        const mailtoLink = `mailto:your-email@example.com?subject=${subject}&body=${body}`;
+        
+        console.log('📧 邮件链接已生成:', mailtoLink);
+        console.log('💡 提示：您可以点击此链接发送邮件，或配置 EmailJS 实现自动发送');
+    }
+}
+
+// 方法4: 发送到 Google Sheets (额外选项)
+function sendToGoogleSheets(suggestionText) {
+    // 使用 Google Apps Script Web App
+    const scriptUrl = 'YOUR_GOOGLE_SCRIPT_URL';
+    
+    fetch(scriptUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            suggestion: suggestionText,
+            timestamp: new Date().toISOString(),
+            game: '对战游戏'
+        })
+    })
+    .then(() => {
+        console.log('✅ 建议已发送到 Google Sheets');
+    })
+    .catch(error => {
+        console.warn('⚠️ Google Sheets 发送出错:', error.message);
+    });
+}
+
+// 配置助手函数
+function setupSuggestionCollection() {
+    console.log('🔧 建议收集配置助手');
+    console.log('\n=== 推荐方案 ===');
+    console.log('1. Formspree (最简单)');
+    console.log('   - 访问: https://formspree.io/');
+    console.log('   - 创建免费账户并获取表单ID');
+    console.log('   - 替换代码中的 YOUR_FORM_ID');
+    console.log('\n2. EmailJS (邮件通知)');
+    console.log('   - 访问: https://www.emailjs.com/');
+    console.log('   - 配置邮件服务和模板');
+    console.log('   - 在页面中引入 EmailJS 脚本');
+    console.log('\n3. Google Sheets (数据表格)');
+    console.log('   - 创建 Google Apps Script');
+    console.log('   - 部署为 Web App');
+    console.log('   - 替换代码中的脚本URL');
+    console.log('\n=== 使用方法 ===');
+    console.log('setupFormspree("your_form_id") - 配置 Formspree');
+    console.log('setupEmailJS("service_id", "template_id") - 配置 EmailJS');
+}
+
+// 快速配置函数
+function setupFormspree(formId) {
+    if (!formId) {
+        console.error('请提供 Formspree 表单 ID');
+        return;
+    }
+    
+    // 动态更新 Formspree 端点
+    window.formspreeEndpoint = `https://formspree.io/f/${formId}`;
+    console.log('✅ Formspree 已配置:', window.formspreeEndpoint);
+}
+
+function setupEmailJS(serviceId, templateId) {
+    if (!serviceId || !templateId) {
+        console.error('请提供 EmailJS 服务ID和模板ID');
+        return;
+    }
+    
+    window.emailjsConfig = { serviceId, templateId };
+    console.log('✅ EmailJS 已配置');
+}
 
 // 导出全局函数供开发者使用
 window.setupGA = setupGoogleAnalytics;
 window.checkGA = checkGASetup;
+window.setupSuggestionCollection = setupSuggestionCollection;
+window.setupFormspree = setupFormspree;
+window.setupEmailJS = setupEmailJS;
+window.sendToGoogleSheets = sendToGoogleSheets;
 
 </script>
