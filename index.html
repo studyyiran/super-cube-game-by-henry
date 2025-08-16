@@ -4371,13 +4371,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // 检查 Webhook 配置状态
         if (window.webhookUrl) {
             console.log('✅ 跨设备收集: Webhook 已配置 -', window.webhookUrl);
+            console.log('🌍 现在不同设备的建议会汇总到同一个地方！');
         } else {
-            console.log('⚠️ 跨设备收集: 未配置 (建议只会保存在本地)');
-            console.log('🌐 启用跨设备收集: setupWebhook("您的URL")');
-            console.log('💡 获取免费URL: 访问 https://webhook.site/');
+            console.log('\n❌ 问题诊断: 建议只在本地保存，无法跨设备收集');
+            console.log('\n🔧 解决方案 (只需2步):');
+            console.log('   1️⃣ 打开新标签页访问: https://webhook.site/');
+            console.log('   2️⃣ 复制页面上的URL，然后运行: setupWebhook("复制的URL")');
+            console.log('\n💡 完成后，所有设备的建议都会发送到那个网页！');
         }
         
-        console.log('\n📋 查看所有选项: setupSuggestionCollection()');
+        console.log('\n📋 查看详细说明: setupSuggestionCollection()');
     }, 1000);
 });
 
@@ -4517,25 +4520,30 @@ function sendToGoogleSheets(suggestionText) {
     });
 }
 
-// 简单建议收集助手
+// 建议收集问题解决助手
 function setupSuggestionCollection() {
-    console.log('🎯 超简单建议收集方案');
-    console.log('\n=== 立即可用的方案 ===');
-    console.log('✅ 方案1: 自动下载文件 (无需配置)');
-    console.log('   - 建议会自动下载为 JSON 文件');
-    console.log('   - 您可以收集所有下载的文件');
-    console.log('\n✅ 方案2: 复制到剪贴板 (无需配置)');
-    console.log('   - 建议数据会自动复制到剪贴板');
-    console.log('   - 您可以粘贴到任何地方保存');
-    console.log('\n✅ 方案3: Webhook 收集 (推荐)');
-    console.log('   - 访问: https://webhook.site/');
-    console.log('   - 复制您的唯一URL');
-    console.log('   - 运行: setupWebhook("您的URL")');
-    console.log('\n=== 当前状态 ===');
-    console.log('📥 文件下载: 已启用');
-    console.log('📋 剪贴板复制: 已启用');
-    console.log('🌐 Webhook: ' + (window.webhookUrl ? '已配置' : '未配置'));
-    console.log('\n💡 提示: 现在提交建议就会自动收集数据！');
+    console.log('🔍 建议收集问题诊断与解决');
+    
+    if (window.webhookUrl) {
+        console.log('\n✅ 系统状态: 跨设备收集已启用');
+        console.log('🌐 Webhook URL:', window.webhookUrl);
+        console.log('📊 建议数据会发送到上述网址，您可以在那里查看所有设备的建议');
+    } else {
+        console.log('\n❌ 问题: 建议只保存在本地，无法跨设备收集');
+        console.log('\n🎯 解决方案: 启用跨设备收集 (2分钟搞定)');
+        console.log('\n📋 详细步骤:');
+        console.log('   1. 打开新标签页，访问: https://webhook.site/');
+        console.log('   2. 页面会显示一个唯一的URL (类似: https://webhook.site/12345...)');
+        console.log('   3. 复制这个URL');
+        console.log('   4. 回到这里，运行: setupWebhook("粘贴您复制的URL")');
+        console.log('   5. 完成！现在所有设备的建议都会汇总到那个网页');
+        console.log('\n💡 提示: webhook.site 是免费服务，无需注册');
+    }
+    
+    console.log('\n=== 当前收集方式 ===');
+    console.log('📥 本地下载: 已启用 (每次建议都会下载JSON文件)');
+    console.log('📋 剪贴板: 已启用 (建议数据自动复制到剪贴板)');
+    console.log('🌐 跨设备收集: ' + (window.webhookUrl ? '✅ 已启用' : '❌ 未启用'));
 }
 
 // 快速配置函数
@@ -4546,9 +4554,20 @@ function setupWebhook(url) {
         return;
     }
     
+    // 简单验证URL格式
+    if (!url.startsWith('http')) {
+        console.error('❌ URL格式错误，请确保以 http:// 或 https:// 开头');
+        return;
+    }
+    
     window.webhookUrl = url;
-    console.log('✅ Webhook 已配置:', url);
-    console.log('💡 现在所有建议都会发送到这个URL');
+    console.log('\n🎉 跨设备收集已启用！');
+    console.log('🌐 Webhook URL:', url);
+    console.log('\n📋 验证步骤:');
+    console.log('   1. 点击游戏右上角的建议按钮');
+    console.log('   2. 输入测试建议并提交');
+    console.log('   3. 回到 webhook.site 页面查看是否收到数据');
+    console.log('\n💡 成功后，所有设备的建议都会汇总到这个网址！');
 }
 
 function setupFormspree(formId) {
