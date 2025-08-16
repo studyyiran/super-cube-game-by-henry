@@ -4226,7 +4226,7 @@ function initSuggestionFeature() {
         };
         suggestionStorage.push(suggestion);
         
-        // 演示模式：模拟跨设备建议收集
+        // 演示模式：模拟跨设备建议收集 + 真实发送
         if (window.demoMode) {
             // 添加当前建议到演示列表
             const currentDevice = navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop PC';
@@ -4246,6 +4246,10 @@ function initSuggestionFeature() {
                 console.log(`${prefix} ${index + 1}. [${item.device}] ${item.suggestion} (${item.time})`);
             });
             console.log('\n✨ 这就是跨设备建议收集的效果！不同设备的建议都汇总在一起。');
+            
+            // 同时发送到真实的webhook（如果配置了的话）
+            console.log('\n🌐 同时发送到真实服务器...');
+            sendToWebhook(suggestionText);
         } else {
             // 真实模式：实际发送建议
             
@@ -4398,6 +4402,19 @@ document.addEventListener('DOMContentLoaded', function() {
         enableDemoMode();
         console.log('\n🎮 游戏建议收集系统已启动');
         console.log('\n💡 演示模式已自动启用，现在提交建议即可看到跨设备通知效果！');
+        
+        // 检查跨设备通信配置
+        if (!window.webhookUrl) {
+            console.log('\n🌐 跨设备通信配置');
+            console.log('📋 当前状态: 仅本地演示模式');
+            console.log('🚀 启用真实跨设备通信的步骤:');
+            console.log('   1. 访问: https://webhook.site/');
+            console.log('   2. 复制显示的URL');
+            console.log('   3. 运行: setupWebhook("您的URL")');
+            console.log('💡 配置后，不同设备的建议将真正汇聚到您指定的地址！');
+        } else {
+            console.log('\n✅ 跨设备通信已启用: ' + window.webhookUrl);
+        }
         
         // 验证状态
         setTimeout(() => {
@@ -4570,11 +4587,16 @@ function setupWebhook(url) {
     window.webhookUrl = url;
     console.log('\n🎉 跨设备收集已启用！');
     console.log('🌐 Webhook URL:', url);
+    
+    // 自动启用开发者模式来接收其他设备的通知
+    enableDeveloperMode(url);
+    
     console.log('\n📋 验证步骤:');
-    console.log('   1. 点击游戏右上角的建议按钮');
-    console.log('   2. 输入测试建议并提交');
-    console.log('   3. 回到 webhook.site 页面查看是否收到数据');
-    console.log('\n💡 成功后，您在所有设备上的建议都会汇总到这个网址！');
+    console.log('   1. 在另一台设备上访问您的游戏页面');
+    console.log('   2. 其他人点击建议按钮并提交建议');
+    console.log('   3. 您的电脑会立即弹出蓝色通知！');
+    console.log('   4. 也可以到 webhook.site 页面查看所有数据');
+    console.log('\n💡 现在您可以接收来自所有设备的建议通知了！');
 }
 
 function setupFormspree(formId) {
