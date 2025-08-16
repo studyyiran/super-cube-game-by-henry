@@ -229,6 +229,28 @@
              flex: 1;
          }
          
+         /* 开发者通知样式 */
+         #developerNotification {
+             position: fixed;
+             top: 100px;
+             right: 20px;
+             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+             color: white;
+             padding: 20px;
+             border-radius: 15px;
+             box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+             display: none;
+             z-index: 1002;
+             max-width: 400px;
+             min-width: 300px;
+             animation: slideIn 0.5s ease-out;
+             border: 2px solid rgba(255, 255, 255, 0.1);
+         }
+         
+         @keyframes slideIn {
+             from { transform: translateX(100%); opacity: 0; }
+             to { transform: translateX(0); opacity: 1; }
+         }
 
     </style>
 </head>
@@ -259,8 +281,7 @@
     <div id="suggestionNotification"></div>
     
     <!-- 开发者通知 -->
-    <div id="developerNotification" style="position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: none; z-index: 1000; max-width: 350px;">
-        <div id="developerNotificationContent"></div>
+    <div id="developerNotification">
     </div>
 
     <div id="welcomeScreen">
@@ -4244,9 +4265,6 @@ function initSuggestionFeature() {
             
             // 方法2: 生成可复制的建议数据
             generateCopyableData(suggestionText);
-            
-            // 方法3: 保存到浏览器下载
-            saveToDownload(suggestionText);
         }
         
         // 显示通知给开发者
@@ -4273,9 +4291,12 @@ function initSuggestionFeature() {
 
 // 显示建议通知
 function showSuggestionNotification(suggestion) {
+    console.log('📤 显示用户通知: ' + suggestion.content);
+    console.log('🔍 调试信息: isDeveloperMode =', isDeveloperMode);
+    console.log('🔍 调试信息: window.demoMode =', window.demoMode);
+    
     const notification = document.getElementById('suggestionNotification');
     
-    // 显示发送成功通知
     notification.innerHTML = `
         <strong>✅ 建议发送成功！</strong><br>
         <small>⏰ ${new Date().toLocaleString()}</small><br>
@@ -4286,12 +4307,17 @@ function showSuggestionNotification(suggestion) {
     
     // 如果启用了开发者模式，1秒后显示开发者收到的通知
     if (isDeveloperMode) {
+        console.log('⏰ 演示模式已启用，1秒后将显示开发者通知');
         setTimeout(() => {
+            console.log('📥 触发开发者通知');
             showDeveloperNotification({
                 suggestion: suggestion.content,
                 userAgent: navigator.userAgent
             }, new Date().toISOString());
         }, 1000);
+    } else {
+        console.log('⚠️ 演示模式未启用，不会显示开发者通知');
+        console.log('🔍 当前 isDeveloperMode 值:', isDeveloperMode);
     }
 }
 
@@ -4367,27 +4393,18 @@ function checkGASetup() {
 document.addEventListener('DOMContentLoaded', function() {
     initSuggestionFeature();
     
-    // 启动提示和演示模式
+    // 自动启用演示模式
+    setTimeout(() => {
+        enableDemoMode();
+        console.log('\n🎮 游戏建议收集系统已启动');
+        console.log('\n💡 演示模式已自动启用，现在提交建议即可看到跨设备通知效果！');
+        
+        // 验证状态
         setTimeout(() => {
-            console.log('\n🎮 游戏建议收集系统已启动');
-            
-            // 启用演示模式，模拟跨设备收集
-            window.demoMode = true;
-            window.demoSuggestions = [
-                { device: 'iPhone 12', suggestion: '希望增加更多角色选择', time: '2024-01-15 14:30' },
-                { device: 'Windows PC', suggestion: '游戏音效可以更丰富一些', time: '2024-01-15 15:45' },
-                { device: 'Android 手机', suggestion: '建议添加排行榜功能', time: '2024-01-15 16:20' }
-            ];
-            
-            console.log('\n🌟 演示模式已启用 - 模拟跨设备建议收集');
-            console.log('📱 已收集到的建议:');
-            window.demoSuggestions.forEach((item, index) => {
-                console.log(`   ${index + 1}. [${item.device}] ${item.suggestion} (${item.time})`);
-            });
-            
-            console.log('\n💡 现在提交建议，您会看到它被添加到跨设备收集中！');
-            console.log('🔧 如需真实跨设备收集，运行: setupRealCollection()');
-        }, 1000);
+            console.log('🔍 最终状态检查: isDeveloperMode =', isDeveloperMode);
+            console.log('🔍 最终状态检查: window.demoMode =', window.demoMode);
+        }, 500);
+    }, 1000);
 });
 
 // 方法1: 发送到免费的在线收集服务
@@ -4458,29 +4475,7 @@ function generateCopyableData(suggestionText) {
     }
 }
 
-// 方法3: 保存到浏览器下载
-function saveToDownload(suggestionText) {
-    const data = {
-        建议内容: suggestionText,
-        提交时间: new Date().toLocaleString(),
-        游戏名称: '对战游戏',
-        时间戳: Date.now()
-    };
-    
-    const jsonData = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonData], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `游戏建议_${new Date().toISOString().slice(0, 10)}_${Date.now()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    console.log('💾 建议已保存为文件下载');
-}
+
 
 // 方法3: 通过邮件发送 (备用方案)
 function sendByEmail(suggestionText) {
@@ -4673,39 +4668,69 @@ function checkForNewSuggestions() {
 }
 
 function showDeveloperNotification(suggestionData, timestamp) {
+    console.log('💻 显示开发者通知: ' + suggestionData.suggestion);
+    console.log('🔍 调试: showDeveloperNotification 函数被调用');
+    
     const notification = document.getElementById('developerNotification');
-    const content = document.getElementById('developerNotificationContent');
-    const deviceInfo = suggestionData.userAgent ? 
-        (suggestionData.userAgent.includes('Mobile') ? '📱 移动设备' : '💻 桌面设备') : '💻 桌面设备';
+    console.log('🔍 调试: developerNotification 元素:', notification);
     
-    const isLong = suggestionData.suggestion.length > 30;
-    const shortText = suggestionData.suggestion.substring(0, 30);
-    const timeStr = new Date(timestamp).toLocaleString();
+    if (!notification) {
+        console.error('❌ 错误: 找不到 developerNotification 元素!');
+        return;
+    }
     
+    // 解析设备信息
+    const userAgent = suggestionData.userAgent || '';
+    let deviceInfo = '🖥️ 未知设备';
+    if (userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone')) {
+        deviceInfo = '📱 移动设备';
+    } else if (userAgent.includes('Windows') || userAgent.includes('Mac') || userAgent.includes('Linux')) {
+        deviceInfo = '💻 桌面设备';
+    }
+    
+    // 格式化时间
+    const date = new Date(timestamp);
+    const timeStr = date.toLocaleString();
+    
+    // 处理长文本
+    const suggestion = suggestionData.suggestion || '';
     let notificationHTML;
-    if (isLong) {
+    
+    if (suggestion.length > 50) {
+        const preview = suggestion.substring(0, 50) + '...';
         notificationHTML = `
-            <strong>${deviceInfo}用户发来建议:</strong><br>
-            "<span id="devSuggestionPreview">${shortText}...</span>"
-            <span id="devSuggestionFull" style="display: none;">${suggestionData.suggestion}</span>
-            <button onclick="toggleDevSuggestionText()" style="background: none; border: none; color: #ffffff; text-decoration: underline; cursor: pointer; font-size: 12px; margin: 0 5px; padding: 0;">显示全文</button><br>
-            <small>⏰ ${timeStr}</small><br>
+            <div style="margin-bottom: 10px;">
+                <strong>🔔 收到新建议</strong><br>
+                <small>${deviceInfo} • ${timeStr}</small>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; margin: 10px 0;">
+                <span id="devSuggestionPreview">${preview}</span>
+                <span id="devSuggestionFull" style="display: none;">${suggestion}</span>
+                <br><button onclick="toggleDevSuggestionText()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 3px; margin-top: 5px; cursor: pointer; font-size: 12px;">显示全文</button>
+            </div>
             <button onclick="hideDeveloperNotification()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">知道了</button>
         `;
     } else {
         notificationHTML = `
-            <strong>${deviceInfo}用户发来建议:</strong><br>
-            "${suggestionData.suggestion}"<br>
-            <small>⏰ ${timeStr}</small><br>
+            <div style="margin-bottom: 10px;">
+                <strong>🔔 收到新建议</strong><br>
+                <small>${deviceInfo} • ${timeStr}</small>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; margin: 10px 0;">
+                ${suggestion}
+            </div>
             <button onclick="hideDeveloperNotification()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">知道了</button>
         `;
     }
     
-    content.innerHTML = notificationHTML;
+    notification.innerHTML = notificationHTML;
     notification.style.display = 'block';
     notification.style.animation = 'slideIn 0.5s ease-out';
     
-    // 播放提示音（如果需要）
+    console.log('✅ 开发者通知已显示');
+    console.log('🔍 调试: notification.style.display =', notification.style.display);
+    console.log('🔍 调试: notification.offsetHeight =', notification.offsetHeight);
+    console.log('🔍 调试: notification.offsetWidth =', notification.offsetWidth);
     console.log('🔔 收到新建议:', suggestionData.suggestion);
     console.log('📊 设备信息:', deviceInfo);
     console.log('⏰ 提交时间:', timeStr);
@@ -4792,7 +4817,11 @@ function disableDeveloperMode() {
 // 启用演示模式（无需真实webhook）
 function enableDemoMode() {
     isDeveloperMode = true;
+    window.demoMode = true;
+    window.demoSuggestions = window.demoSuggestions || [];
     console.log('🎮 演示模式已启用');
+    console.log('🔍 调试: enableDemoMode 设置 isDeveloperMode =', isDeveloperMode);
+    console.log('🔍 调试: enableDemoMode 设置 window.demoMode =', window.demoMode);
     console.log('💡 现在提交建议时，您将看到跨设备通知演示效果');
     console.log('📱 建议提交后会显示"发送成功"，然后开发者端会收到通知');
     
@@ -4813,8 +4842,7 @@ function enableDemoMode() {
     `;
     statusDiv.innerHTML = `
         🎮 演示模式已启用<br>
-        <small>提交建议可体验跨设备通知</small><br>
-        <button onclick="disableDemoMode()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 4px 8px; border-radius: 4px; margin-top: 5px; cursor: pointer; font-size: 12px;">关闭</button>
+        <small>提交建议可体验跨设备通知</small>
     `;
     
     // 移除旧的状态显示
@@ -4822,10 +4850,18 @@ function enableDemoMode() {
     if (oldStatus) oldStatus.remove();
     
     document.body.appendChild(statusDiv);
+    
+    // 3秒后自动隐藏状态提示（不影响演示模式功能）
+    setTimeout(() => {
+        if (statusDiv && statusDiv.parentNode) {
+            statusDiv.remove();
+        }
+    }, 3000);
 }
 
 function disableDemoMode() {
     isDeveloperMode = false;
+    window.demoMode = false;
     
     const statusDiv = document.getElementById('demoModeStatus');
     if (statusDiv) statusDiv.remove();
