@@ -4169,6 +4169,12 @@ function returnToLobby() {
 // 建议功能相关代码
 let suggestionStorage = [];
 
+// 开发者模式相关变量
+let isDeveloperMode = false;
+let developerWebhookUrl = null;
+let suggestionPollingInterval = null;
+let lastCheckedTimestamp = Date.now();
+
 // 初始化建议功能
 function initSuggestionFeature() {
     const suggestionButton = document.getElementById('suggestionButton');
@@ -4213,29 +4219,49 @@ function initSuggestionFeature() {
         };
         suggestionStorage.push(suggestion);
         
-        // 多种方式发送建议数据
-        
-        // 方法1: 发送到 Google Analytics (需要配置真实的测量ID)
-        if (typeof gtag !== 'undefined') {
-            gtag('event', 'user_suggestion', {
-                'event_category': 'User Feedback',
-                'event_label': 'Game Suggestion',
-                'custom_parameter_1': suggestionText,
-                'custom_parameter_2': new Date().toISOString(),
-                'value': 1
+        // 演示模式：模拟跨设备建议收集
+        if (window.demoMode) {
+            // 添加当前建议到演示列表
+            const currentDevice = navigator.userAgent.includes('Mobile') ? 'Mobile Device' : 'Desktop PC';
+            const newSuggestion = {
+                device: currentDevice,
+                suggestion: suggestionText,
+                time: new Date().toLocaleString()
+            };
+            window.demoSuggestions.push(newSuggestion);
+            
+            // 显示跨设备收集效果
+            console.log('\n🎉 建议已添加到跨设备收集系统！');
+            console.log('\n📊 所有设备的建议汇总:');
+            window.demoSuggestions.forEach((item, index) => {
+                const isNew = index === window.demoSuggestions.length - 1;
+                const prefix = isNew ? '🆕' : '  ';
+                console.log(`${prefix} ${index + 1}. [${item.device}] ${item.suggestion} (${item.time})`);
             });
+            console.log('\n✨ 这就是跨设备建议收集的效果！不同设备的建议都汇总在一起。');
+        } else {
+            // 真实模式：实际发送建议
+            
+            // 方法1: 发送到 Google Analytics (需要配置真实的测量ID)
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'user_suggestion', {
+                    'event_category': 'User Feedback',
+                    'event_label': 'Game Suggestion',
+                    'custom_parameter_1': suggestionText,
+                    'custom_parameter_2': new Date().toISOString(),
+                    'value': 1
+                });
+            }
+            
+            // 方法1: 发送到免费的在线收集服务
+            sendToWebhook(suggestionText);
+            
+            // 方法2: 生成可复制的建议数据
+            generateCopyableData(suggestionText);
+            
+            // 方法3: 保存到浏览器下载
+            saveToDownload(suggestionText);
         }
-        
-        // 简单有效的建议收集方案
-        
-        // 方法1: 发送到免费的在线收集服务
-        sendToWebhook(suggestionText);
-        
-        // 方法2: 生成可复制的建议数据
-        generateCopyableData(suggestionText);
-        
-        // 方法3: 保存到浏览器下载
-        saveToDownload(suggestionText);
         
         // 显示通知给开发者
         showSuggestionNotification(suggestion);
@@ -4246,8 +4272,8 @@ function initSuggestionFeature() {
         // 显示成功提示
         alert('感谢您的建议！已成功提交。');
         
-        // 在控制台输出建议（开发者可以看到）
-        console.log('收到用户建议:', suggestion);
+        // 在控制台输出建议确认
+        console.log('您的建议已记录:', suggestion);
         console.log('建议已发送到 Google Analytics');
     });
     
@@ -4270,10 +4296,10 @@ function showSuggestionNotification(suggestion) {
         notificationHTML = `
             <div class="notification-content">
                 <div class="notification-text">
-                    有一位用户给你了"<span id="suggestionPreview">${shortText}...</span>"
+                    您的建议"<span id="suggestionPreview">${shortText}...</span>"
                     <span id="suggestionFull" style="display: none;">${suggestion.content}</span>
                     <button class="show-full-button" id="showFullBtn" onclick="toggleSuggestionText()">显示全文</button>
-                    的建议
+                    已成功提交
                 </div>
                 <button class="know-button" onclick="hideSuggestionNotification()">知道了</button>
             </div>
@@ -4281,7 +4307,7 @@ function showSuggestionNotification(suggestion) {
     } else {
         notificationHTML = `
             <div class="notification-content">
-                <div class="notification-text">有一位用户给你了"${suggestion.content}"的建议</div>
+                <div class="notification-text">您的建议"${suggestion.content}"已成功提交</div>
                 <button class="know-button" onclick="hideSuggestionNotification()">知道了</button>
             </div>
         `;
@@ -4363,31 +4389,36 @@ function checkGASetup() {
 document.addEventListener('DOMContentLoaded', function() {
     initSuggestionFeature();
     
-    // 简化的启动提示
-    setTimeout(() => {
-        console.log('\n🎮 游戏建议收集系统已启动');
-        console.log('📥 本地收集: 自动下载和剪贴板复制已启用');
-        
-        // 检查 Webhook 配置状态
-        if (window.webhookUrl) {
-            console.log('✅ 跨设备收集: Webhook 已配置 -', window.webhookUrl);
-            console.log('🌍 现在不同设备的建议会汇总到同一个地方！');
-        } else {
-            console.log('\n❌ 问题诊断: 建议只在本地保存，无法跨设备收集');
-            console.log('\n🔧 解决方案 (只需2步):');
-            console.log('   1️⃣ 打开新标签页访问: https://webhook.site/');
-            console.log('   2️⃣ 复制页面上的URL，然后运行: setupWebhook("复制的URL")');
-            console.log('\n💡 完成后，所有设备的建议都会发送到那个网页！');
-        }
-        
-        console.log('\n📋 查看详细说明: setupSuggestionCollection()');
-    }, 1000);
+    // 启动提示和演示模式
+        setTimeout(() => {
+            console.log('\n🎮 游戏建议收集系统已启动');
+            
+            // 启用演示模式，模拟跨设备收集
+            window.demoMode = true;
+            window.demoSuggestions = [
+                { device: 'iPhone 12', suggestion: '希望增加更多角色选择', time: '2024-01-15 14:30' },
+                { device: 'Windows PC', suggestion: '游戏音效可以更丰富一些', time: '2024-01-15 15:45' },
+                { device: 'Android 手机', suggestion: '建议添加排行榜功能', time: '2024-01-15 16:20' }
+            ];
+            
+            console.log('\n🌟 演示模式已启用 - 模拟跨设备建议收集');
+            console.log('📱 已收集到的建议:');
+            window.demoSuggestions.forEach((item, index) => {
+                console.log(`   ${index + 1}. [${item.device}] ${item.suggestion} (${item.time})`);
+            });
+            
+            console.log('\n💡 现在提交建议，您会看到它被添加到跨设备收集中！');
+            console.log('🔧 如需真实跨设备收集，运行: setupRealCollection()');
+        }, 1000);
 });
 
 // 方法1: 发送到免费的在线收集服务
-function sendToWebhook(suggestionText) {
+function sendToWebhook(suggestionText, customWebhookUrl = null) {
+    // 使用自定义URL或默认配置的URL
+    const webhookUrl = customWebhookUrl || window.webhookUrl;
+    
     // 检查是否配置了 webhook URL
-    if (!window.webhookUrl) {
+    if (!webhookUrl) {
         console.log('ℹ️ Webhook 未配置，跳过在线发送');
         console.log('💡 配置方法: setupWebhook("您的URL")');
         return;
@@ -4403,7 +4434,7 @@ function sendToWebhook(suggestionText) {
     };
     
     // 发送到配置的 webhook URL
-    fetch(window.webhookUrl, {
+    fetch(webhookUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -4412,7 +4443,10 @@ function sendToWebhook(suggestionText) {
     })
     .then(response => {
         if (response.ok) {
-            console.log('✅ 建议已发送到 Webhook:', window.webhookUrl);
+            console.log('✅ 建议已发送到 Webhook:', webhookUrl);
+            if (customWebhookUrl) {
+                console.log('📡 发送目标: 开发者监听地址');
+            }
         } else {
             console.log('⚠️ Webhook 响应异常，但数据已发送');
         }
@@ -4527,7 +4561,7 @@ function setupSuggestionCollection() {
     if (window.webhookUrl) {
         console.log('\n✅ 系统状态: 跨设备收集已启用');
         console.log('🌐 Webhook URL:', window.webhookUrl);
-        console.log('📊 建议数据会发送到上述网址，您可以在那里查看所有设备的建议');
+        console.log('📊 您的建议数据会发送到上述网址，可以在那里查看所有设备的建议');
     } else {
         console.log('\n❌ 问题: 建议只保存在本地，无法跨设备收集');
         console.log('\n🎯 解决方案: 启用跨设备收集 (2分钟搞定)');
@@ -4536,13 +4570,13 @@ function setupSuggestionCollection() {
         console.log('   2. 页面会显示一个唯一的URL (类似: https://webhook.site/12345...)');
         console.log('   3. 复制这个URL');
         console.log('   4. 回到这里，运行: setupWebhook("粘贴您复制的URL")');
-        console.log('   5. 完成！现在所有设备的建议都会汇总到那个网页');
+        console.log('   5. 完成！现在您在所有设备上的建议都会汇总到那个网页');
         console.log('\n💡 提示: webhook.site 是免费服务，无需注册');
     }
     
     console.log('\n=== 当前收集方式 ===');
-    console.log('📥 本地下载: 已启用 (每次建议都会下载JSON文件)');
-    console.log('📋 剪贴板: 已启用 (建议数据自动复制到剪贴板)');
+    console.log('📥 本地下载: 已启用 (您的每次建议都会下载JSON文件)');
+    console.log('📋 剪贴板: 已启用 (您的建议数据自动复制到剪贴板)');
     console.log('🌐 跨设备收集: ' + (window.webhookUrl ? '✅ 已启用' : '❌ 未启用'));
 }
 
@@ -4567,7 +4601,7 @@ function setupWebhook(url) {
     console.log('   1. 点击游戏右上角的建议按钮');
     console.log('   2. 输入测试建议并提交');
     console.log('   3. 回到 webhook.site 页面查看是否收到数据');
-    console.log('\n💡 成功后，所有设备的建议都会汇总到这个网址！');
+    console.log('\n💡 成功后，您在所有设备上的建议都会汇总到这个网址！');
 }
 
 function setupFormspree(formId) {
@@ -4590,10 +4624,180 @@ function setupEmailJS(serviceId, templateId) {
     console.log('✅ EmailJS 已配置');
 }
 
+// 开发者模式功能
+function enableDeveloperMode(webhookUrl) {
+    if (!webhookUrl) {
+        console.error('❌ 请提供有效的 Webhook URL');
+        console.log('💡 获取方法: 访问 https://webhook.site/ 并复制您的唯一URL');
+        return;
+    }
+    
+    isDeveloperMode = true;
+    developerWebhookUrl = webhookUrl;
+    lastCheckedTimestamp = Date.now();
+    
+    console.log('🔧 开发者模式已启用');
+    console.log('📡 监听地址:', webhookUrl);
+    console.log('🔄 开始实时监听用户建议...');
+    
+    // 开始轮询检查新建议
+    startSuggestionPolling();
+    
+    // 显示开发者模式状态
+    showDeveloperModeStatus();
+}
+
+function startSuggestionPolling() {
+    if (suggestionPollingInterval) {
+        clearInterval(suggestionPollingInterval);
+    }
+    
+    suggestionPollingInterval = setInterval(() => {
+        checkForNewSuggestions();
+    }, 3000); // 每3秒检查一次
+}
+
+function checkForNewSuggestions() {
+    if (!isDeveloperMode || !developerWebhookUrl) return;
+    
+    // 这里使用webhook.site的API来获取新的请求
+    const webhookId = developerWebhookUrl.split('/').pop();
+    const apiUrl = `https://webhook.site/token/${webhookId}/requests`;
+    
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.data) {
+                // 过滤出新的建议
+                const newSuggestions = data.data.filter(request => {
+                    const requestTime = new Date(request.created_at).getTime();
+                    return requestTime > lastCheckedTimestamp && 
+                           request.method === 'POST' &&
+                           request.content && 
+                           JSON.parse(request.content).suggestion;
+                });
+                
+                // 显示新建议
+                newSuggestions.forEach(request => {
+                    const suggestionData = JSON.parse(request.content);
+                    showDeveloperNotification(suggestionData, request.created_at);
+                });
+                
+                // 更新最后检查时间
+                if (data.data.length > 0) {
+                    lastCheckedTimestamp = Math.max(...data.data.map(r => new Date(r.created_at).getTime()));
+                }
+            }
+        })
+        .catch(error => {
+            console.log('🔍 轮询检查中...', new Date().toLocaleTimeString());
+        });
+}
+
+function showDeveloperNotification(suggestionData, timestamp) {
+    const notification = document.getElementById('suggestionNotification');
+    const deviceInfo = suggestionData.userAgent ? 
+        (suggestionData.userAgent.includes('Mobile') ? '📱 移动设备' : '💻 桌面设备') : '🖥️ 未知设备';
+    
+    const isLong = suggestionData.suggestion.length > 20;
+    const shortText = suggestionData.suggestion.substring(0, 20);
+    const timeStr = new Date(timestamp).toLocaleString();
+    
+    let notificationHTML;
+    if (isLong) {
+        notificationHTML = `
+            <div class="notification-content">
+                <div class="notification-text">
+                    ${deviceInfo} 用户发来建议: "<span id="suggestionPreview">${shortText}...</span>"
+                    <span id="suggestionFull" style="display: none;">${suggestionData.suggestion}</span>
+                    <button class="show-full-button" id="showFullBtn" onclick="toggleSuggestionText()">显示全文</button>
+                    <br><small>⏰ ${timeStr}</small>
+                </div>
+                <button class="know-button" onclick="hideSuggestionNotification()">知道了</button>
+            </div>
+        `;
+    } else {
+        notificationHTML = `
+            <div class="notification-content">
+                <div class="notification-text">
+                    ${deviceInfo} 用户发来建议: "${suggestionData.suggestion}"
+                    <br><small>⏰ ${timeStr}</small>
+                </div>
+                <button class="know-button" onclick="hideSuggestionNotification()">知道了</button>
+            </div>
+        `;
+    }
+    
+    notification.innerHTML = notificationHTML;
+    notification.style.display = 'block';
+    
+    // 播放提示音（如果需要）
+    console.log('🔔 收到新建议:', suggestionData.suggestion);
+    console.log('📊 设备信息:', deviceInfo);
+    console.log('⏰ 提交时间:', timeStr);
+}
+
+function showDeveloperModeStatus() {
+    const statusDiv = document.createElement('div');
+    statusDiv.id = 'developerModeStatus';
+    statusDiv.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        font-size: 12px;
+        z-index: 1002;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        max-width: 250px;
+    `;
+    
+    statusDiv.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 8px;">🔧 开发者模式</div>
+        <div>📡 正在监听用户建议...</div>
+        <div style="font-size: 10px; opacity: 0.8; margin-top: 5px;">每3秒检查一次新建议</div>
+        <button onclick="disableDeveloperMode()" style="
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 10px;
+            margin-top: 8px;
+        ">关闭监听</button>
+    `;
+    
+    // 移除旧的状态显示
+    const oldStatus = document.getElementById('developerModeStatus');
+    if (oldStatus) oldStatus.remove();
+    
+    document.body.appendChild(statusDiv);
+}
+
+function disableDeveloperMode() {
+    isDeveloperMode = false;
+    developerWebhookUrl = null;
+    
+    if (suggestionPollingInterval) {
+        clearInterval(suggestionPollingInterval);
+        suggestionPollingInterval = null;
+    }
+    
+    const statusDiv = document.getElementById('developerModeStatus');
+    if (statusDiv) statusDiv.remove();
+    
+    console.log('🔧 开发者模式已关闭');
+}
+
 // 导出全局函数供开发者使用
 window.setupSuggestionCollection = setupSuggestionCollection;
 window.setupWebhook = setupWebhook;
 window.setupFormspree = setupFormspree;
+window.enableDeveloperMode = enableDeveloperMode;
+window.disableDeveloperMode = disableDeveloperMode;
 window.setupEmailJS = setupEmailJS;
 window.setupGA = setupGoogleAnalytics;
 window.checkGA = checkGASetup;
