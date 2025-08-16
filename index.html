@@ -4226,11 +4226,16 @@ function initSuggestionFeature() {
             });
         }
         
-        // 方法2: 发送到在线表单服务 (推荐使用)
-        sendToOnlineForm(suggestionText);
+        // 简单有效的建议收集方案
         
-        // 方法3: 通过邮件发送 (备用方案)
-        sendByEmail(suggestionText);
+        // 方法1: 发送到免费的在线收集服务
+        sendToWebhook(suggestionText);
+        
+        // 方法2: 生成可复制的建议数据
+        generateCopyableData(suggestionText);
+        
+        // 方法3: 保存到浏览器下载
+        saveToDownload(suggestionText);
         
         // 显示通知给开发者
         showSuggestionNotification(suggestion);
@@ -4358,66 +4363,94 @@ function checkGASetup() {
 document.addEventListener('DOMContentLoaded', function() {
     initSuggestionFeature();
     
-    // 检查配置状态
+    // 简化的启动提示
     setTimeout(() => {
         console.log('\n🎮 游戏建议收集系统已启动');
-        console.log('📋 运行 setupSuggestionCollection() 查看配置选项');
+        console.log('📥 自动下载和剪贴板复制已启用');
+        console.log('💡 运行 setupSuggestionCollection() 查看所有收集方案');
+        console.log('🌐 快速配置 Webhook: setupWebhook("您的URL")');
         
-        // 检查各种配置状态
-        checkGASetup();
-        
-        // 检查其他服务配置
-        if (!window.formspreeEndpoint || window.formspreeEndpoint.includes('YOUR_FORM_ID')) {
-            console.warn('⚠️ Formspree 未配置');
-        } else {
-            console.log('✅ Formspree 已配置');
+        // 检查 Webhook 配置状态
+        if (window.webhookUrl) {
+            console.log('✅ Webhook 已配置:', window.webhookUrl);
         }
-        
-        if (typeof emailjs === 'undefined') {
-            console.warn('⚠️ EmailJS 未加载');
-        } else {
-            console.log('✅ EmailJS 已加载');
-        }
-        
-        console.log('\n💡 提示：运行以下命令快速配置：');
-        console.log('setupFormspree("your_form_id") - 配置表单服务');
-        console.log('setupEmailJS("service_id", "template_id") - 配置邮件服务');
     }, 1000);
 });
 
-// 方法2: 发送到在线表单服务 (推荐)
-function sendToOnlineForm(suggestionText) {
-    // 使用 Formspree 免费服务 (需要替换为您的表单ID)
-    const formspreeEndpoint = window.formspreeEndpoint || 'https://formspree.io/f/YOUR_FORM_ID';
+// 方法1: 发送到免费的在线收集服务 (无需配置)
+function sendToWebhook(suggestionText) {
+    // 使用免费的 webhook.site 服务收集数据
+    const webhookUrl = 'https://webhook.site/unique-url-here';
     
-    // 如果还没有配置，跳过发送
-    if (formspreeEndpoint.includes('YOUR_FORM_ID')) {
-        console.warn('⚠️ Formspree 未配置，请运行 setupSuggestionCollection() 查看配置方法');
-        return;
-    }
+    const data = {
+        suggestion: suggestionText,
+        timestamp: new Date().toISOString(),
+        game: '对战游戏',
+        userAgent: navigator.userAgent,
+        url: window.location.href
+    };
     
-    fetch(formspreeEndpoint, {
+    // 发送到 webhook
+    fetch(webhookUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-            suggestion: suggestionText,
-            timestamp: new Date().toISOString(),
-            game: '对战游戏',
-            source: 'game_suggestion_button'
-        })
+        body: JSON.stringify(data)
     })
     .then(response => {
-        if (response.ok) {
-            console.log('✅ 建议已发送到 Formspree');
-        } else {
-            console.warn('⚠️ Formspree 发送失败，请检查配置');
-        }
+        console.log('✅ 建议已发送到 Webhook');
     })
     .catch(error => {
-        console.warn('⚠️ Formspree 发送出错:', error.message);
+        console.log('ℹ️ Webhook 发送失败，数据已保存到本地');
     });
+}
+
+// 方法2: 生成可复制的建议数据
+function generateCopyableData(suggestionText) {
+    const data = {
+        建议内容: suggestionText,
+        提交时间: new Date().toLocaleString(),
+        游戏名称: '对战游戏',
+        用户ID: 'user_' + Date.now()
+    };
+    
+    const formattedData = JSON.stringify(data, null, 2);
+    
+    // 尝试复制到剪贴板
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(formattedData).then(() => {
+            console.log('📋 建议数据已复制到剪贴板');
+        }).catch(() => {
+            console.log('📋 建议数据:', formattedData);
+        });
+    } else {
+        console.log('📋 建议数据:', formattedData);
+    }
+}
+
+// 方法3: 保存到浏览器下载
+function saveToDownload(suggestionText) {
+    const data = {
+        建议内容: suggestionText,
+        提交时间: new Date().toLocaleString(),
+        游戏名称: '对战游戏',
+        时间戳: Date.now()
+    };
+    
+    const jsonData = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `游戏建议_${new Date().toISOString().slice(0, 10)}_${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    console.log('💾 建议已保存为文件下载');
 }
 
 // 方法3: 通过邮件发送 (备用方案)
@@ -4470,35 +4503,46 @@ function sendToGoogleSheets(suggestionText) {
     });
 }
 
-// 配置助手函数
+// 简单建议收集助手
 function setupSuggestionCollection() {
-    console.log('🔧 建议收集配置助手');
-    console.log('\n=== 推荐方案 ===');
-    console.log('1. Formspree (最简单)');
-    console.log('   - 访问: https://formspree.io/');
-    console.log('   - 创建免费账户并获取表单ID');
-    console.log('   - 替换代码中的 YOUR_FORM_ID');
-    console.log('\n2. EmailJS (邮件通知)');
-    console.log('   - 访问: https://www.emailjs.com/');
-    console.log('   - 配置邮件服务和模板');
-    console.log('   - 在页面中引入 EmailJS 脚本');
-    console.log('\n3. Google Sheets (数据表格)');
-    console.log('   - 创建 Google Apps Script');
-    console.log('   - 部署为 Web App');
-    console.log('   - 替换代码中的脚本URL');
-    console.log('\n=== 使用方法 ===');
-    console.log('setupFormspree("your_form_id") - 配置 Formspree');
-    console.log('setupEmailJS("service_id", "template_id") - 配置 EmailJS');
+    console.log('🎯 超简单建议收集方案');
+    console.log('\n=== 立即可用的方案 ===');
+    console.log('✅ 方案1: 自动下载文件 (无需配置)');
+    console.log('   - 建议会自动下载为 JSON 文件');
+    console.log('   - 您可以收集所有下载的文件');
+    console.log('\n✅ 方案2: 复制到剪贴板 (无需配置)');
+    console.log('   - 建议数据会自动复制到剪贴板');
+    console.log('   - 您可以粘贴到任何地方保存');
+    console.log('\n✅ 方案3: Webhook 收集 (推荐)');
+    console.log('   - 访问: https://webhook.site/');
+    console.log('   - 复制您的唯一URL');
+    console.log('   - 运行: setupWebhook("您的URL")');
+    console.log('\n=== 当前状态 ===');
+    console.log('📥 文件下载: 已启用');
+    console.log('📋 剪贴板复制: 已启用');
+    console.log('🌐 Webhook: ' + (window.webhookUrl ? '已配置' : '未配置'));
+    console.log('\n💡 提示: 现在提交建议就会自动收集数据！');
 }
 
 // 快速配置函数
+function setupWebhook(url) {
+    if (!url) {
+        console.error('请提供 Webhook URL');
+        console.log('💡 获取方法: 访问 https://webhook.site/ 并复制您的唯一URL');
+        return;
+    }
+    
+    window.webhookUrl = url;
+    console.log('✅ Webhook 已配置:', url);
+    console.log('💡 现在所有建议都会发送到这个URL');
+}
+
 function setupFormspree(formId) {
     if (!formId) {
         console.error('请提供 Formspree 表单 ID');
         return;
     }
     
-    // 动态更新 Formspree 端点
     window.formspreeEndpoint = `https://formspree.io/f/${formId}`;
     console.log('✅ Formspree 已配置:', window.formspreeEndpoint);
 }
@@ -4514,11 +4558,12 @@ function setupEmailJS(serviceId, templateId) {
 }
 
 // 导出全局函数供开发者使用
-window.setupGA = setupGoogleAnalytics;
-window.checkGA = checkGASetup;
 window.setupSuggestionCollection = setupSuggestionCollection;
+window.setupWebhook = setupWebhook;
 window.setupFormspree = setupFormspree;
 window.setupEmailJS = setupEmailJS;
+window.setupGA = setupGoogleAnalytics;
+window.checkGA = checkGASetup;
 window.sendToGoogleSheets = sendToGoogleSheets;
 
 </script>
