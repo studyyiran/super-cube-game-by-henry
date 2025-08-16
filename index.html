@@ -252,6 +252,105 @@
              to { transform: translateX(0); opacity: 1; }
          }
 
+        /* 登录注册系统样式 */
+        #loginScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 200;
+        }
+        
+        #loginContainer {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            min-width: 400px;
+        }
+        
+        #loginTitle {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        
+        .loginForm {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .loginInput {
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        
+        .loginInput:focus {
+            border-color: #667eea;
+        }
+        
+        .loginButton {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin: 5px;
+        }
+        
+        .loginButton:hover {
+            transform: translateY(-2px);
+        }
+        
+        .loginButton.secondary {
+            background: #95a5a6;
+        }
+        
+        #registerForm {
+            display: none;
+        }
+        
+        /* ID显示弹窗样式 */
+        #idDisplayModal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 300;
+            display: none;
+            animation: fadeInOut 4s ease-in-out;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+
     </style>
 </head>
 <body>
@@ -282,6 +381,48 @@
     
     <!-- 开发者通知 -->
     <div id="developerNotification">
+    </div>
+
+    <!-- 登录注册界面 -->
+    <div id="loginScreen">
+        <div id="loginContainer">
+            <div id="loginTitle">欢迎到：超级方块！</div>
+            
+            <!-- 登录提示信息 -->
+            <div style="background-color: #e8f4fd; border: 1px solid #bee5eb; border-radius: 8px; padding: 15px; margin-bottom: 20px; text-align: center; font-size: 14px; color: #0c5460; max-width: 350px;">
+                <h4 style="margin: 0 0 10px 0; color: #0c5460;">💡 快速体验提示</h4>
+                <p style="margin: 5px 0;"><strong>默认测试账户：</strong></p>
+                <p style="margin: 5px 0;">ID: <span style="background-color: #d1ecf1; padding: 2px 8px; border-radius: 3px; font-family: monospace; font-weight: bold;">00000000</span></p>
+                <p style="margin: 5px 0;">密码: <span style="background-color: #d1ecf1; padding: 2px 8px; border-radius: 3px; font-family: monospace; font-weight: bold;">993966</span></p>
+                <p style="margin: 10px 0 5px 0; font-size: 12px; color: #6c757d;">直接复制粘贴即可快速登录体验游戏</p>
+            </div>
+            
+            <!-- 登录表单 -->
+            <div id="loginForm" class="loginForm">
+                <input type="text" id="loginId" class="loginInput" placeholder="请输入您的8位ID" maxlength="8">
+                <input type="password" id="loginPassword" class="loginInput" placeholder="请输入6位方方码（密码）" maxlength="6">
+                <button id="loginBtn" class="loginButton" onclick="alert('按钮被点击了！'); console.log('直接onclick事件触发');">登录</button>
+                <button id="showRegisterBtn" class="loginButton secondary">注册新账户</button>
+                <div style="margin-top: 15px; font-size: 12px; color: #6c757d; text-align: center;">
+                    <p style="margin: 5px 0;">💡 提示：按回车键也可以快速登录</p>
+                    <p style="margin: 5px 0;">🔒 您的账户信息安全存储在本地</p>
+                </div>
+            </div>
+            
+            <!-- 注册表单 -->
+            <div id="registerForm" class="loginForm">
+                <input type="text" id="registerName" class="loginInput" placeholder="请输入您的名字" maxlength="20">
+                <input type="password" id="registerPassword" class="loginInput" placeholder="请输入六位方方码（密码）" maxlength="6">
+                <button id="registerBtn" class="loginButton">注册</button>
+                <button id="backToLoginBtn" class="loginButton secondary">返回登录</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ID显示弹窗 -->
+    <div id="idDisplayModal">
+        <h2>注册成功！</h2>
+        <p id="idDisplayText">你的ID是：</p>
     </div>
 
     <div id="welcomeScreen">
@@ -366,7 +507,246 @@
         <button id="skill1Btn" style="padding: 10px 20px; font-size: 16px;">埋下地雷</button>
         <button id="skill2Btn" style="padding: 10px 20px; font-size: 16px;">旋转射击</button>
     </div>
-    <script >
+    <script>
+        // 用户数据存储系统
+        let users = JSON.parse(localStorage.getItem('gameUsers')) || [];
+        let currentUser = null;
+        let nextUserId = parseInt(localStorage.getItem('nextUserId')) || 1;
+        
+        // 添加默认用户Henry
+        if (users.length === 0) {
+            users.push({
+                name: 'Henry',
+                id: '00000000',
+                password: '993966'
+            });
+            localStorage.setItem('gameUsers', JSON.stringify(users));
+        }
+        
+        // 登录注册系统功能
+        function initLoginSystem() {
+            console.log('initLoginSystem函数被调用');
+            // 显示登录界面
+            const loginScreen = document.getElementById('loginScreen');
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            
+            console.log('loginScreen元素:', loginScreen);
+            console.log('welcomeScreen元素:', welcomeScreen);
+            
+            if (loginScreen) {
+                loginScreen.style.display = 'flex';
+                loginScreen.style.visibility = 'visible';
+                loginScreen.style.zIndex = '200';
+            }
+            
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+                welcomeScreen.style.visibility = 'hidden';
+                welcomeScreen.style.zIndex = '-1';
+            }
+            
+            // 确保元素存在后再绑定事件监听器
+            const loginBtn = document.getElementById('loginBtn');
+            console.log('loginBtn元素:', loginBtn);
+            const showRegisterBtn = document.getElementById('showRegisterBtn');
+            const registerBtn = document.getElementById('registerBtn');
+            const backToLoginBtn = document.getElementById('backToLoginBtn');
+            const loginPassword = document.getElementById('loginPassword');
+            const registerPassword = document.getElementById('registerPassword');
+            
+            if (loginBtn) {
+                console.log('为loginBtn绑定点击事件');
+                loginBtn.removeEventListener('click', handleLogin); // 移除可能存在的旧监听器
+                loginBtn.addEventListener('click', function() {
+                    console.log('登录按钮被点击了！');
+                    handleLogin();
+                });
+                console.log('loginBtn事件绑定完成');
+                
+                // 测试按钮是否可点击
+                loginBtn.onclick = function() {
+                    console.log('onclick事件触发');
+                };
+            } else {
+                console.error('loginBtn元素未找到！');
+            }
+            if (showRegisterBtn) {
+                showRegisterBtn.removeEventListener('click', showRegisterForm);
+                showRegisterBtn.addEventListener('click', showRegisterForm);
+            }
+            if (registerBtn) {
+                registerBtn.removeEventListener('click', handleRegister);
+                registerBtn.addEventListener('click', handleRegister);
+            }
+            if (backToLoginBtn) {
+                backToLoginBtn.removeEventListener('click', showLoginForm);
+                backToLoginBtn.addEventListener('click', showLoginForm);
+            }
+            
+            // 回车键登录
+            if (loginPassword) {
+                loginPassword.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        handleLogin();
+                    }
+                });
+            }
+            
+            // 回车键注册
+            if (registerPassword) {
+                registerPassword.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        handleRegister();
+                    }
+                });
+            }
+        }
+        
+        function showRegisterForm() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'flex';
+        }
+        
+        function showLoginForm() {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'flex';
+        }
+        
+        function handleLogin() {
+            console.log('handleLogin函数被调用');
+            const id = document.getElementById('loginId').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            
+            console.log('输入的ID:', id, '密码:', password);
+            console.log('当前用户数据:', users);
+            
+            if (!id || !password) {
+                alert('请输入ID和密码！');
+                return;
+            }
+            
+            const user = users.find(u => u.id === id && u.password === password);
+            if (user) {
+                console.log('登录成功，用户:', user);
+                currentUser = user;
+                startGame();
+            } else {
+                console.log('登录失败，用户不存在或密码错误');
+                alert('ID或密码错误！');
+            }
+        }
+        
+        function handleRegister() {
+            const name = document.getElementById('registerName').value.trim();
+            const password = document.getElementById('registerPassword').value.trim();
+            
+            if (!name || !password) {
+                alert('请输入名字和密码！');
+                return;
+            }
+            
+            if (password.length !== 6) {
+                alert('方方码必须是6位数字！');
+                return;
+            }
+            
+            if (!/^\d{6}$/.test(password)) {
+                alert('方方码只能包含数字！');
+                return;
+            }
+            
+            // 生成8位ID
+            const newId = nextUserId.toString().padStart(8, '0');
+            
+            // 检查ID是否已存在
+            if (users.find(u => u.id === newId)) {
+                nextUserId++;
+                localStorage.setItem('nextUserId', nextUserId.toString());
+                handleRegister(); // 递归调用直到找到可用ID
+                return;
+            }
+            
+            // 创建新用户
+            const newUser = {
+                name: name,
+                id: newId,
+                password: password
+            };
+            
+            users.push(newUser);
+            nextUserId++;
+            
+            // 保存到localStorage
+            localStorage.setItem('gameUsers', JSON.stringify(users));
+            localStorage.setItem('nextUserId', nextUserId.toString());
+            
+            // 显示ID弹窗
+            showIdDisplay(newId);
+            
+            // 清空表单
+            document.getElementById('registerName').value = '';
+            document.getElementById('registerPassword').value = '';
+            
+            // 3秒后返回登录界面
+            setTimeout(() => {
+                showLoginForm();
+            }, 3000);
+        }
+        
+        function showIdDisplay(id) {
+            document.getElementById('idDisplayText').textContent = `你的ID是：${id}`;
+            const modal = document.getElementById('idDisplayModal');
+            modal.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 3000);
+        }
+        
+        function startGame() {
+            console.log('startGame函数被调用');
+            console.log('当前用户:', currentUser);
+            
+            // 隐藏登录界面
+            const loginScreen = document.getElementById('loginScreen');
+            if (loginScreen) {
+                loginScreen.style.display = 'none';
+                loginScreen.style.visibility = 'hidden';
+                loginScreen.style.zIndex = '-1';
+                console.log('登录界面已隐藏');
+            } else {
+                console.error('找不到loginScreen元素');
+            }
+            
+            // 显示游戏界面
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'flex';
+                welcomeScreen.style.visibility = 'visible';
+                welcomeScreen.style.zIndex = '100';
+                console.log('游戏界面已显示');
+            } else {
+                console.error('找不到welcomeScreen元素');
+            }
+            
+            // 更新欢迎信息
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            if (welcomeMessage && currentUser) {
+                welcomeMessage.textContent = `欢迎！${currentUser.name}`;
+                console.log('欢迎信息已更新:', welcomeMessage.textContent);
+            } else {
+                console.error('找不到welcomeMessage元素或currentUser为空');
+            }
+            
+            // 清空登录表单
+            const loginId = document.getElementById('loginId');
+            const loginPassword = document.getElementById('loginPassword');
+            if (loginId) loginId.value = '';
+            if (loginPassword) loginPassword.value = '';
+            console.log('登录表单已清空');
+        }
+        
         // 根据电脑特征确定玩家编号的常量
         const playerCount = getPlayerNumberByDevice();
 
@@ -4436,13 +4816,19 @@ function sendToWebhook(suggestionText, customWebhookUrl = null) {
         return;
     }
     
+    // 生成或获取持久的设备ID
+    if (!window.currentDeviceId) {
+        window.currentDeviceId = 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        console.log('🔧 生成设备ID:', window.currentDeviceId);
+    }
+    
     const data = {
         suggestion: suggestionText,
         timestamp: new Date().toISOString(),
         game: '对战游戏',
         userAgent: navigator.userAgent,
         url: window.location.href,
-        deviceId: 'device_' + Date.now()
+        deviceId: window.currentDeviceId
     };
     
     // 发送到配置的 webhook URL
@@ -4627,13 +5013,21 @@ function enableDeveloperMode(webhookUrl) {
         return;
     }
     
+    // 确保设备ID已生成
+    if (!window.currentDeviceId) {
+        window.currentDeviceId = 'device_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        console.log('🔧 生成设备ID:', window.currentDeviceId);
+    }
+    
     isDeveloperMode = true;
     developerWebhookUrl = webhookUrl;
     lastCheckedTimestamp = Date.now();
     
     console.log('🔧 开发者模式已启用');
     console.log('📡 监听地址:', webhookUrl);
-    console.log('🔄 开始实时监听用户建议...');
+    console.log('🆔 本设备ID:', window.currentDeviceId);
+    console.log('🔄 开始实时监听其他设备的建议...');
+    console.log('💡 注意: 来自本设备的建议将被自动过滤，只显示其他设备的建议');
     
     // 开始轮询检查新建议
     startSuggestionPolling();
@@ -4663,13 +5057,26 @@ function checkForNewSuggestions() {
         .then(response => response.json())
         .then(data => {
             if (data && data.data) {
-                // 过滤出新的建议
+                // 过滤出新的建议（排除来自本设备的建议）
                 const newSuggestions = data.data.filter(request => {
                     const requestTime = new Date(request.created_at).getTime();
-                    return requestTime > lastCheckedTimestamp && 
-                           request.method === 'POST' &&
-                           request.content && 
-                           JSON.parse(request.content).suggestion;
+                    if (requestTime <= lastCheckedTimestamp || 
+                        request.method !== 'POST' ||
+                        !request.content) {
+                        return false;
+                    }
+                    
+                    try {
+                        const suggestionData = JSON.parse(request.content);
+                        // 排除来自本设备的建议
+                        if (suggestionData.deviceId === window.currentDeviceId) {
+                            console.log('🔍 跳过本设备建议:', suggestionData.suggestion);
+                            return false;
+                        }
+                        return suggestionData.suggestion;
+                    } catch (e) {
+                        return false;
+                    }
                 });
                 
                 // 显示新建议
@@ -4903,5 +5310,23 @@ window.setupEmailJS = setupEmailJS;
 window.setupGA = setupGoogleAnalytics;
 window.checkGA = checkGASetup;
 window.sendToGoogleSheets = sendToGoogleSheets;
+
+// 页面加载完成后初始化登录系统
+window.addEventListener('DOMContentLoaded', function() {
+    console.log('页面DOMContentLoaded事件触发');
+    console.log('准备调用initLoginSystem');
+    try {
+        initLoginSystem();
+        console.log('initLoginSystem调用成功');
+    } catch (error) {
+        console.error('initLoginSystem调用失败:', error);
+    }
+});
+
+// 添加页面加载测试
+console.log('JavaScript代码开始执行');
+window.addEventListener('load', function() {
+    console.log('页面完全加载完成');
+});
 
 </script>
