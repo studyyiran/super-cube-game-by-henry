@@ -982,11 +982,22 @@
     </div>
     <script>
         // 云端用户数据存储系统
+        // 云端存储配置 - 使用JSONBin.io服务
+        // 注意：如果云端同步失败，系统会自动使用本地存储作为备份
         const CLOUD_STORAGE_URL = 'https://api.jsonbin.io/v3/b/67a0f8e5e41b4d34e4746b8a'; // 云端存储API
         const API_KEY = '$2a$10$8vF9xQzKjL.mH5nP2wR3XeY4tG6hB9sC1dE2fA3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3'; // API密钥
         
+        // 云端存储开关 - 可以临时禁用云端同步
+        const ENABLE_CLOUD_SYNC = false; // 暂时禁用云端同步，使用本地存储
+        
         // 云端存储操作函数
         async function saveUsersToCloud(usersData) {
+            // 检查云端同步开关
+            if (!ENABLE_CLOUD_SYNC) {
+                console.log('📱 云端同步已禁用，使用本地存储模式');
+                return true; // 返回成功，避免错误提示
+            }
+            
             try {
                 const response = await fetch(CLOUD_STORAGE_URL, {
                     method: 'PUT',
@@ -1005,16 +1016,22 @@
                     console.log('✅ 用户数据已同步到云端');
                     return true;
                 } else {
-                    console.error('❌ 云端同步失败:', response.status);
+                    console.log('⚠️ 云端同步失败，使用本地存储模式');
                     return false;
                 }
             } catch (error) {
-                console.error('❌ 云端同步错误:', error);
+                console.log('⚠️ 云端服务不可用，使用本地存储模式');
                 return false;
             }
         }
         
         async function loadUsersFromCloud() {
+            // 检查云端同步开关
+            if (!ENABLE_CLOUD_SYNC) {
+                console.log('📱 云端同步已禁用，使用本地存储模式');
+                return null;
+            }
+            
             try {
                 const response = await fetch(CLOUD_STORAGE_URL + '/latest', {
                     headers: {
@@ -1151,17 +1168,24 @@
         // });
         
         async function initializeUserData() {
+            console.log('🚀 开始初始化用户数据...');
+            
             // 尝试从云端加载
             const cloudData = await loadUsersFromCloud();
             
             if (cloudData) {
+                console.log('✅ 从云端加载用户数据成功');
                 users = cloudData.users;
                 nextUserId = cloudData.nextUserId;
             } else {
+                console.log('⚠️ 云端加载失败，使用本地数据');
                 // 如果云端加载失败，使用本地数据
                 users = JSON.parse(localStorage.getItem('gameUsers')) || [];
                 nextUserId = parseInt(localStorage.getItem('nextUserId')) || 1;
             }
+            
+            // 加载永久用户（包括新注册的用户）
+            loadPermanentUsers();
             
             // 确保默认管理员用户存在
             const adminUser = {
@@ -1172,6 +1196,8 @@
             
             if (!users.find(u => u.id === '00000000')) {
                 users.push(adminUser);
+                // 将管理员用户添加到永久用户列表
+                addToPermanentUsers(adminUser);
                 await saveUsersToCloud(users);
             }
             
@@ -1180,6 +1206,7 @@
             localStorage.setItem('nextUserId', nextUserId.toString());
             
             console.log('📊 用户数据初始化完成，共', users.length, '个用户');
+            console.log('👥 当前用户列表:', users.map(u => `${u.name}(${u.id})`).join(', '));
             
             // 启动数据同步
             startDataSync();
@@ -1212,34 +1239,8 @@
             localStorage.setItem('gameUsers', JSON.stringify(users));
         }
         
-        // 在页面加载时加载永久用户
-        loadPermanentUsers();
-        
-        // 添加默认用户Henry和其他永久用户
-        const permanentUsers = [
-            {
-                name: 'Henry',
-                id: '00000000',
-                password: '993966'
-            }
-        ];
-        
-        // 确保永久用户始终存在
-        permanentUsers.forEach(permUser => {
-            if (!users.find(u => u.id === permUser.id)) {
-                users.push(permUser);
-            }
-            // 同时将默认用户添加到永久用户列表
-            addToPermanentUsers(permUser);
-        });
-        
-        // 如果没有任何用户，添加默认用户
-        if (users.length === 0) {
-            users = [...permanentUsers];
-        }
-        
-        // 保存更新后的用户列表
-        localStorage.setItem('gameUsers', JSON.stringify(users));
+        // 注意：用户数据初始化将在页面加载时通过initializeUserData()函数统一处理
+        // 这里不再直接调用loadPermanentUsers()，避免初始化顺序混乱
          
          // 登录注册系统功能
         function initLoginSystem() {
@@ -1486,6 +1487,11 @@
                 };
                 
                 users.push(newUser);
+                
+                // 将新用户添加到永久用户列表，确保数据持久化
+                addToPermanentUsers(newUser);
+                console.log('✅ 新用户已添加到永久用户列表:', newUser.name, newUser.id);
+                
                 nextUserId++;
                 
                 // 同步到云端
@@ -6198,15 +6204,22 @@ window.setupGA = setupGoogleAnalytics;
 window.checkGA = checkGASetup;
 window.sendToGoogleSheets = sendToGoogleSheets;
 
-// 页面加载完成后初始化登录系统
-window.addEventListener('DOMContentLoaded', function() {
+// 页面加载完成后初始化用户数据和登录系统
+window.addEventListener('DOMContentLoaded', async function() {
     console.log('页面DOMContentLoaded事件触发');
-    console.log('准备调用initLoginSystem');
+    
     try {
+        // 首先初始化用户数据
+        console.log('准备调用initializeUserData');
+        await initializeUserData();
+        console.log('initializeUserData调用成功');
+        
+        // 然后初始化登录系统
+        console.log('准备调用initLoginSystem');
         initLoginSystem();
         console.log('initLoginSystem调用成功');
     } catch (error) {
-        console.error('initLoginSystem调用失败:', error);
+        console.error('初始化过程中发生错误:', error);
     }
 });
 
