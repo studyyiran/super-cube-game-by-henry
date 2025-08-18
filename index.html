@@ -1033,10 +1033,11 @@
                     }
                 }
             } catch (error) {
-                console.error('❌ 从云端加载数据失败:', error);
+                // 静默处理网络错误，避免在控制台显示错误信息
+                console.log('🌐 云端服务暂时不可用，使用本地数据');
             }
             
-            console.log('⚠️ 使用本地数据');
+            console.log('📱 使用本地数据模式');
             return null;
         }
         
@@ -5892,10 +5893,18 @@ function startSuggestionPolling() {
         clearInterval(suggestionPollingInterval);
     }
     
+    // 立即执行一次检查
+    checkForNewSuggestions();
+    
     suggestionPollingInterval = setInterval(() => {
         checkForNewSuggestions();
     }, 3000); // 每3秒检查一次
+    
+    console.log('🔄 建议轮询已启动，每3秒检查一次新建议');
 }
+
+// 已显示的建议ID集合，避免重复显示
+let displayedSuggestionIds = new Set();
 
 function checkForNewSuggestions() {
     if (!isDeveloperMode || !developerWebhookUrl) return;
@@ -5908,7 +5917,7 @@ function checkForNewSuggestions() {
         .then(response => response.json())
         .then(data => {
             if (data && data.data) {
-                // 过滤出新的建议（排除来自本设备的建议）
+                // 过滤出新的建议（排除来自本设备的建议和已显示的建议）
                 const newSuggestions = data.data.filter(request => {
                     const requestTime = new Date(request.created_at).getTime();
                     if (requestTime <= lastCheckedTimestamp || 
@@ -5919,11 +5928,23 @@ function checkForNewSuggestions() {
                     
                     try {
                         const suggestionData = JSON.parse(request.content);
+                        
                         // 排除来自本设备的建议
                         if (suggestionData.deviceId === window.currentDeviceId) {
                             console.log('🔍 跳过本设备建议:', suggestionData.suggestion);
                             return false;
                         }
+                        
+                        // 生成唯一ID来避免重复显示
+                        const suggestionId = `${request.uuid || request.created_at}_${suggestionData.suggestion.substring(0, 20)}`;
+                        if (displayedSuggestionIds.has(suggestionId)) {
+                            console.log('🔍 跳过已显示建议:', suggestionData.suggestion);
+                            return false;
+                        }
+                        
+                        // 标记为已显示
+                        displayedSuggestionIds.add(suggestionId);
+                        
                         return suggestionData.suggestion;
                     } catch (e) {
                         return false;
@@ -5940,6 +5961,14 @@ function checkForNewSuggestions() {
                 if (data.data.length > 0) {
                     lastCheckedTimestamp = Math.max(...data.data.map(r => new Date(r.created_at).getTime()));
                 }
+                
+                // 清理过期的已显示建议ID（保留最近1小时的记录）
+                const oneHourAgo = Date.now() - 3600000;
+                const expiredIds = Array.from(displayedSuggestionIds).filter(id => {
+                    const timestamp = id.split('_')[0];
+                    return new Date(timestamp).getTime() < oneHourAgo;
+                });
+                expiredIds.forEach(id => displayedSuggestionIds.delete(id));
             }
         })
         .catch(error => {
@@ -6544,20 +6573,10 @@ function showSuggestionNotification(message) {
         }
     }, 10000);
     
-    // 如果启用了开发者模式，1秒后显示开发者收到的通知
-    if (isDeveloperMode) {
-        console.log('⏰ 演示模式已启用，1秒后将显示开发者通知');
-        setTimeout(() => {
-            console.log('📥 触发开发者通知');
-            showDeveloperNotification({
-                suggestion: message,
-                userAgent: navigator.userAgent
-            }, new Date().toISOString());
-        }, 1000);
-    } else {
-        console.log('⚠️ 演示模式未启用，不会显示开发者通知');
-        console.log('🔍 当前 isDeveloperMode 值:', isDeveloperMode);
-    }
+    // 注释掉开发者通知显示逻辑，用户端只显示发送成功通知
+    // 蓝色的开发者通知应该只在真正的开发者端显示
+    console.log('📤 用户端只显示绿色发送成功通知，不显示蓝色开发者通知');
+    console.log('🔍 当前 isDeveloperMode 值:', isDeveloperMode);
 }
 
 // 游戏开始时隐藏邮箱、创建房间和广场按钮
