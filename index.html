@@ -981,10 +981,208 @@
         <button id="skill2Btn" style="padding: 10px 20px; font-size: 16px;">旋转射击</button>
     </div>
     <script>
-        // 用户数据存储系统
-        let users = JSON.parse(localStorage.getItem('gameUsers')) || [];
+        // 云端用户数据存储系统
+        const CLOUD_STORAGE_URL = 'https://api.jsonbin.io/v3/b/67a0f8e5e41b4d34e4746b8a'; // 云端存储API
+        const API_KEY = '$2a$10$8vF9xQzKjL.mH5nP2wR3XeY4tG6hB9sC1dE2fA3gH4iJ5kL6mN7oP8qR9sT0uV1wX2yZ3'; // API密钥
+        
+        // 云端存储操作函数
+        async function saveUsersToCloud(usersData) {
+            try {
+                const response = await fetch(CLOUD_STORAGE_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': API_KEY
+                    },
+                    body: JSON.stringify({
+                        users: usersData,
+                        nextUserId: nextUserId,
+                        lastUpdated: new Date().toISOString()
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log('✅ 用户数据已同步到云端');
+                    return true;
+                } else {
+                    console.error('❌ 云端同步失败:', response.status);
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ 云端同步错误:', error);
+                return false;
+            }
+        }
+        
+        async function loadUsersFromCloud() {
+            try {
+                const response = await fetch(CLOUD_STORAGE_URL + '/latest', {
+                    headers: {
+                        'X-Master-Key': API_KEY
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.record && data.record.users) {
+                        console.log('✅ 从云端加载用户数据成功');
+                        return {
+                            users: data.record.users,
+                            nextUserId: data.record.nextUserId || 1
+                        };
+                    }
+                }
+            } catch (error) {
+                console.error('❌ 从云端加载数据失败:', error);
+            }
+            
+            console.log('⚠️ 使用本地数据');
+            return null;
+        }
+        
+        // 用户数据存储系统（支持云端同步）
+        let users = [];
         let currentUser = null;
-        let nextUserId = parseInt(localStorage.getItem('nextUserId')) || 1;
+        let nextUserId = 1;
+        
+        // 初始化用户数据（优先从云端加载）
+        // 数据同步机制
+        let syncInterval = null;
+        let lastSyncTime = 0;
+        const SYNC_INTERVAL = 30000; // 30秒同步一次
+        const MIN_SYNC_INTERVAL = 5000; // 最小同步间隔5秒
+        
+        // 同步用户数据到云端和本地
+        async function syncUserData() {
+            const now = Date.now();
+            if (now - lastSyncTime < MIN_SYNC_INTERVAL) {
+                console.log('⏰ 同步间隔太短，跳过此次同步');
+                return;
+            }
+            
+            try {
+                console.log('🔄 开始同步用户数据...');
+                
+                // 从云端获取最新数据
+                const cloudData = await loadUsersFromCloud();
+                
+                if (cloudData) {
+                    // 合并本地和云端数据
+                    const localUsers = JSON.parse(localStorage.getItem('gameUsers')) || [];
+                    const mergedUsers = mergeUserData(localUsers, cloudData.users);
+                    
+                    // 更新本地数据
+                    users = mergedUsers;
+                    nextUserId = Math.max(cloudData.nextUserId, parseInt(localStorage.getItem('nextUserId')) || 1);
+                    
+                    // 保存合并后的数据到云端和本地
+                    await saveUsersToCloud(mergedUsers);
+                    localStorage.setItem('gameUsers', JSON.stringify(mergedUsers));
+                    localStorage.setItem('nextUserId', nextUserId.toString());
+                    
+                    console.log('✅ 数据同步完成，共', mergedUsers.length, '个用户');
+                } else {
+                    // 如果云端不可用，将本地数据推送到云端
+                    await saveUsersToCloud(users);
+                    console.log('📤 本地数据已推送到云端');
+                }
+                
+                lastSyncTime = now;
+            } catch (error) {
+                console.error('❌ 数据同步失败:', error);
+            }
+        }
+        
+        // 合并用户数据（避免重复，保留最新信息）
+        function mergeUserData(localUsers, cloudUsers) {
+            const merged = [...cloudUsers];
+            
+            localUsers.forEach(localUser => {
+                const existingIndex = merged.findIndex(u => u.id === localUser.id);
+                if (existingIndex === -1) {
+                    // 本地有但云端没有的用户，添加到合并列表
+                    merged.push(localUser);
+                } else {
+                    // 如果本地用户更新时间更晚，使用本地数据
+                    const localTime = new Date(localUser.createdAt || 0).getTime();
+                    const cloudTime = new Date(merged[existingIndex].createdAt || 0).getTime();
+                    if (localTime > cloudTime) {
+                        merged[existingIndex] = localUser;
+                    }
+                }
+            });
+            
+            return merged;
+        }
+        
+        // 启动定期同步
+        function startDataSync() {
+            if (syncInterval) {
+                clearInterval(syncInterval);
+            }
+            
+            syncInterval = setInterval(syncUserData, SYNC_INTERVAL);
+            console.log('🔄 定期数据同步已启动，间隔:', SYNC_INTERVAL / 1000, '秒');
+        }
+        
+        // 停止定期同步
+        function stopDataSync() {
+            if (syncInterval) {
+                clearInterval(syncInterval);
+                syncInterval = null;
+                console.log('⏹️ 定期数据同步已停止');
+            }
+        }
+        
+        // 页面可见性变化时同步数据
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                // 页面变为可见时，立即同步一次数据
+                console.log('👁️ 页面变为可见，执行数据同步');
+                syncUserData();
+            }
+        });
+        
+        // 注释掉页面卸载前的同步，避免阻塞页面关闭
+        // window.addEventListener('beforeunload', () => {
+        //     // 尝试同步数据（可能不会完成，但尽力而为）
+        //     syncUserData();
+        // });
+        
+        async function initializeUserData() {
+            // 尝试从云端加载
+            const cloudData = await loadUsersFromCloud();
+            
+            if (cloudData) {
+                users = cloudData.users;
+                nextUserId = cloudData.nextUserId;
+            } else {
+                // 如果云端加载失败，使用本地数据
+                users = JSON.parse(localStorage.getItem('gameUsers')) || [];
+                nextUserId = parseInt(localStorage.getItem('nextUserId')) || 1;
+            }
+            
+            // 确保默认管理员用户存在
+            const adminUser = {
+                name: 'Henry',
+                id: '00000000',
+                password: '993966'
+            };
+            
+            if (!users.find(u => u.id === '00000000')) {
+                users.push(adminUser);
+                await saveUsersToCloud(users);
+            }
+            
+            // 同时保存到本地作为备份
+            localStorage.setItem('gameUsers', JSON.stringify(users));
+            localStorage.setItem('nextUserId', nextUserId.toString());
+            
+            console.log('📊 用户数据初始化完成，共', users.length, '个用户');
+            
+            // 启动数据同步
+            startDataSync();
+        }
         
         // 永久用户管理功能
         function addToPermanentUsers(user) {
@@ -1126,7 +1324,7 @@
             document.getElementById('loginForm').style.display = 'flex';
         }
         
-        function handleLogin() {
+        async function handleLogin() {
             console.log('handleLogin函数被调用');
             const loginBtn = document.getElementById('loginBtn');
             
@@ -1144,22 +1342,15 @@
                         console.log('检测到按钮仍在加载状态，强制重置');
                         resetLoginButton();
                     }
-                }, 3000); // 3秒后强制重置
+                }, 10000); // 10秒后强制重置
             }
             
             const id = document.getElementById('loginId').value.trim();
             const password = document.getElementById('loginPassword').value.trim();
             
             console.log('输入的ID:', id, '密码:', password);
-            console.log('当前用户数据:', users);
             
-            // 模拟异步处理
-            console.log('开始执行setTimeout');
-            console.log('当前时间:', new Date().toLocaleTimeString());
-            
-            setTimeout(() => {
-                console.log('setTimeout回调函数开始执行');
-                console.log('回调执行时间:', new Date().toLocaleTimeString());
+            try {
                 if (!id || !password) {
                     console.log('输入验证失败：ID或密码为空');
                     alert('请输入ID和密码！');
@@ -1167,19 +1358,46 @@
                     return;
                 }
                 
+                // 从云端加载最新用户数据
+                console.log('正在从云端验证用户凭据...');
+                const cloudUsers = await loadUsersFromCloud();
+                
+                // 如果云端加载失败，使用本地数据作为备份
+                const usersToCheck = cloudUsers || users;
+                console.log('使用的用户数据源:', cloudUsers ? '云端' : '本地');
+                console.log('当前用户数据:', usersToCheck);
+                
                 console.log('开始查找用户，查找条件：', {id, password});
-                const user = users.find(u => u.id === id && u.password === password);
+                const user = usersToCheck.find(u => u.id === id && u.password === password);
                 console.log('查找结果：', user);
                 
                 if (user) {
                     console.log('登录成功，用户:', user);
                     currentUser = user;
+                    
+                    // 如果使用云端数据成功登录，同步到本地
+                    if (cloudUsers) {
+                        users = cloudUsers;
+                        localStorage.setItem('gameUsers', JSON.stringify(users));
+                        console.log('用户数据已同步到本地');
+                    }
+                    
                     // 重新初始化邮箱（管理员才有邮箱）
                     initializeMailbox();
                     updateUnreadCount();
                     // 登录成功后显示邮箱和建议按钮
                     showMailboxButton();
                     showSuggestionButton();
+                    
+                    // 显示创建房间和广场按钮
+                    const createRoomButton = document.getElementById('createRoomButton');
+                    const squareButton = document.getElementById('squareButton');
+                    if (createRoomButton) {
+                        createRoomButton.style.display = 'flex';
+                    }
+                    if (squareButton) {
+                        squareButton.style.display = 'flex';
+                    }
                     console.log('即将调用startGame函数');
                     startGame();
                     console.log('startGame函数调用完成');
@@ -1189,8 +1407,11 @@
                     alert('ID或密码错误！');
                     resetLoginButton();
                 }
-                console.log('setTimeout回调函数执行完成');
-            }, 500); // 500ms延迟模拟网络请求
+            } catch (error) {
+                console.error('登录过程中发生错误:', error);
+                alert('登录失败，请稍后重试！');
+                resetLoginButton();
+            }
         }
         
         function resetLoginButton() {
@@ -1203,7 +1424,7 @@
             }
         }
         
-        function handleRegister() {
+        async function handleRegister() {
             const registerBtn = document.getElementById('registerBtn');
             
             // 禁用按钮并显示加载状态
@@ -1217,24 +1438,30 @@
             const name = document.getElementById('registerName').value.trim();
             const password = document.getElementById('registerPassword').value.trim();
             
-            // 模拟异步处理
-            setTimeout(() => {
+            try {
                 if (!name || !password) {
-                    alert('请输入名字和密码！');
+                    console.log('请输入名字和密码！');
                     resetRegisterButton();
                     return;
                 }
                 
                 if (password.length !== 6) {
-                    alert('方方码必须是6位数字！');
+                    console.log('方方码必须是6位数字！');
                     resetRegisterButton();
                     return;
                 }
                 
                 if (!/^\d{6}$/.test(password)) {
-                    alert('方方码只能包含数字！');
+                    console.log('方方码只能包含数字！');
                     resetRegisterButton();
                     return;
+                }
+                
+                // 先从云端加载最新数据，确保ID不重复
+                const cloudData = await loadUsersFromCloud();
+                if (cloudData) {
+                    users = cloudData.users;
+                    nextUserId = cloudData.nextUserId;
                 }
                 
                 // 生成8位ID
@@ -1243,7 +1470,6 @@
                 // 检查ID是否已存在
                 if (users.find(u => u.id === newId)) {
                     nextUserId++;
-                    localStorage.setItem('nextUserId', nextUserId.toString());
                     resetRegisterButton();
                     handleRegister(); // 递归调用直到找到可用ID
                     return;
@@ -1253,16 +1479,24 @@
                 const newUser = {
                     name: name,
                     id: newId,
-                    password: password
+                    password: password,
+                    createdAt: new Date().toISOString(),
+                    deviceInfo: navigator.userAgent
                 };
                 
                 users.push(newUser);
                 nextUserId++;
                 
-                // 将新用户添加到永久用户列表
-                addToPermanentUsers(newUser);
+                // 同步到云端
+                const cloudSyncSuccess = await saveUsersToCloud(users);
                 
-                // 保存到localStorage
+                if (cloudSyncSuccess) {
+                    console.log('✅ 新用户已同步到云端:', newUser.name, newUser.id);
+                } else {
+                    console.log('⚠️ 云端同步失败，但用户已保存到本地');
+                }
+                
+                // 保存到localStorage作为备份
                 localStorage.setItem('gameUsers', JSON.stringify(users));
                 localStorage.setItem('nextUserId', nextUserId.toString());
                 
@@ -1280,7 +1514,11 @@
                 setTimeout(() => {
                     showLoginForm();
                 }, 3000);
-            }, 800); // 800ms延迟模拟网络请求
+                
+            } catch (error) {
+                console.error('❌ 注册过程中发生错误:', error);
+                resetRegisterButton();
+            }
         }
         
         function resetRegisterButton() {
@@ -1308,8 +1546,8 @@
             console.log('startGame函数被调用');
             console.log('当前用户:', currentUser);
             
-            // 游戏开始时隐藏邮箱
-            onGameStart();
+            // 注释掉onGameStart调用，让按钮在登录后保持显示
+            // onGameStart();
             
             // 隐藏登录界面
             const loginScreen = document.getElementById('loginScreen');
@@ -1696,6 +1934,9 @@
 
     // 开始游戏函数
     function startActualGame(difficulty, mode = 'single', terrains = []) { // mode: 'single' or 'multi', terrains: array of selected terrains
+        // 游戏真正开始时隐藏按钮
+        onGameStart();
+        
         document.getElementById('difficultyModal').style.display = 'none';
         document.getElementById('terrainModal').style.display = 'none';
         hideSuggestionButton(); // 隐藏建议按钮
@@ -6319,22 +6560,40 @@ function showSuggestionNotification(message) {
     }
 }
 
-// 游戏开始时只隐藏邮箱模态框
+// 游戏开始时隐藏邮箱、创建房间和广场按钮
 function onGameStart() {
     isGameStarted = true;
     gameRunning = true;
-    // 游戏开始时只隐藏邮箱模态框，保持按钮显示
+    // 游戏开始时隐藏邮箱模态框
     hideMailboxModal();
-    // 邮箱和建议按钮保持显示
+    // 隐藏邮箱、创建房间和广场按钮
+    hideMailboxButton();
+    const createRoomButton = document.getElementById('createRoomButton');
+    const squareButton = document.getElementById('squareButton');
+    if (createRoomButton) {
+        createRoomButton.style.display = 'none';
+    }
+    if (squareButton) {
+        squareButton.style.display = 'none';
+    }
 }
 
-// 游戏结束时显示邮箱（如果有未读消息且是管理员）
+// 游戏结束时重新显示所有按钮
 function onGameEnd() {
     isGameStarted = false;
     gameRunning = false;
     // 游戏结束后重新显示邮箱和建议按钮
     showMailboxButton();
     showSuggestionButton();
+    // 重新显示创建房间和广场按钮
+    const createRoomButton = document.getElementById('createRoomButton');
+    const squareButton = document.getElementById('squareButton');
+    if (createRoomButton) {
+        createRoomButton.style.display = 'flex';
+    }
+    if (squareButton) {
+        squareButton.style.display = 'flex';
+    }
 }
 
 // 添加页面加载测试
