@@ -758,10 +758,10 @@
         /* 建议按钮样式 - 炫酷版 */
         #suggestionButton {
             position: absolute;
-            top: 20px;
-            left: 200px;
-            width: 80px;
-            height: 80px;
+            top: 30px;
+            left: 120px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -772,10 +772,9 @@
             z-index: 102;
             transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4), 0 0 20px rgba(102, 126, 234, 0.2);
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
             overflow: hidden;
         }
         
@@ -792,7 +791,7 @@
         
         #suggestionButton:hover {
             background: linear-gradient(45deg, #764ba2 0%, #667eea 100%);
-            transform: scale(1.1) rotate(5deg);
+            transform: translateY(-3px) scale(1.05);
             box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6), 0 0 30px rgba(102, 126, 234, 0.4);
         }
         
@@ -803,10 +802,10 @@
         /* 邮箱按钮样式 - 炫酷版 */
         #mailboxButton {
             position: absolute;
-            top: 20px;
-            left: 110px;
-            width: 80px;
-            height: 80px;
+            top: 30px;
+            left: 200px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background: linear-gradient(45deg, #ff6b6b 0%, #ee5a24 100%);
             color: white;
@@ -816,10 +815,9 @@
             z-index: 102;
             transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4), 0 0 20px rgba(255, 107, 107, 0.2);
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
             overflow: hidden;
             animation: mailboxPulse 2s infinite;
         }
@@ -842,7 +840,7 @@
         
         #mailboxButton:hover {
             background: linear-gradient(45deg, #ee5a24 0%, #ff6b6b 100%);
-            transform: scale(1.15) rotate(-5deg);
+            transform: translateY(-3px) scale(1.05);
             box-shadow: 0 15px 40px rgba(255, 107, 107, 0.7), 0 0 40px rgba(255, 107, 107, 0.5);
             animation: none;
         }
@@ -908,8 +906,8 @@
         /* 未读消息徽章样式 */
         .unread-badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
+            top: 22px;
+            left: 252px;
             background-color: #f39c12;
             color: white;
             border-radius: 50%;
@@ -921,6 +919,7 @@
             align-items: center;
             justify-content: center;
             border: 2px solid white;
+            z-index: 103;
         }
         
         .unread-badge.hidden {
@@ -1798,8 +1797,8 @@
     <!-- 邮箱按钮 -->
     <button id="mailboxButton">
         📧
-        <span id="unreadCount" class="unread-badge">0</span>
     </button>
+    <span id="unreadCount" class="unread-badge">0</span>
     
     <!-- 广场按钮和创建房间按钮已移动到游戏按钮区域最前面 -->
     
@@ -4627,14 +4626,14 @@ function handleKeyDown(e) {
         case 'g': // 玩家1旋转射击 (按照README)
             activateRotateShoot(player);
             break;
-        case 'd': // 玩家1手雷 (双人模式，按照README)
+        case 'q': // 玩家1手雷 (双人模式)
             if (player2) {
-                // 双人模式下，D键为玩家1投掷手雷
                 handlePlayerGrenade(player);
-            } else {
-                // 单人模式下，D键为向右移动
-                player.moveRight = true;
             }
+            break;
+        case 'd': // 玩家1向右移动 (单人和双人模式)
+            // D键在单人和双人模式下都控制玩家1向右移动
+            player.moveRight = true;
             break;
         case 'e': // 玩家1攻击 (保留原有功能)
             if (player.canAttack) {
@@ -4799,10 +4798,8 @@ function handleKeyUp(e) {
             player.moveLeft = false;
             break;
         case 'd':
-            // 在双人模式下，D键用于手雷，不用于移动
-            if (!player2) {
-                player.moveRight = false;
-            }
+            // D键在单人和双人模式下都控制玩家1向右移动
+            player.moveRight = false;
             break;
         // 双人模式下玩家1的移动键位 (按照README)
         case 'i': // 玩家1向上移动 (双人模式)
@@ -8423,15 +8420,27 @@ window.addEventListener('load', function() {
     function startBattleRoyaleGame() {
         // 初始化游戏状态
         battleRoyaleState.gameStarted = true;
-        battleRoyaleState.players = currentRoom.players.map((name, index) => ({
-            id: index,
-            name: name,
-            x: 0,
-            y: 0,
-            health: 100,
-            alive: true,
-            color: getPlayerColor(index)
-        }));
+        
+        // 只在第一次初始化时创建玩家数组，避免重复分配颜色
+        if (battleRoyaleState.players.length === 0) {
+            battleRoyaleState.players = currentRoom.players.map((name, index) => ({
+                id: index,
+                name: name,
+                x: 0,
+                y: 0,
+                health: 100,
+                alive: true,
+                color: getPlayerColor(index)
+            }));
+        } else {
+            // 如果玩家数组已存在，只重置位置和状态，保持颜色不变
+            battleRoyaleState.players.forEach(player => {
+                player.x = 0;
+                player.y = 0;
+                player.health = 100;
+                player.alive = true;
+            });
+        }
         
         battleRoyaleState.alivePlayers = [...battleRoyaleState.players];
         
@@ -8449,7 +8458,8 @@ window.addEventListener('load', function() {
     
     // 获取玩家颜色
     function getPlayerColor(index) {
-        const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12'];
+        // 固定颜色，不再变化
+        const colors = ['blue', 'red', 'green', 'orange'];
         return colors[index % colors.length];
     }
     
@@ -8495,6 +8505,12 @@ window.addEventListener('load', function() {
         
         // 显示游戏画布和控制
         document.getElementById('gameCanvas').style.display = 'block';
+        
+        // 隐藏大厅粒子效果
+        const particlesContainer = document.querySelector('.particles');
+        if (particlesContainer) {
+            particlesContainer.style.display = 'none';
+        }
         
         // 根据设备显示相应的控制
         if (isMobile()) {
@@ -8703,6 +8719,12 @@ window.addEventListener('load', function() {
         document.getElementById('gameCanvas').style.display = 'none';
         document.getElementById('mobileControlsSingle').style.display = 'none';
         document.getElementById('mobileControlsMultiplayer').style.display = 'none';
+        
+        // 显示大厅粒子效果
+        const particlesContainer = document.querySelector('.particles');
+        if (particlesContainer) {
+            particlesContainer.style.display = 'block';
+        }
         
         // 显示主菜单
         showMainMenu();
