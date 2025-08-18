@@ -26,21 +26,36 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            background-size: 400% 400%;
-            background-position: center;
-            background-repeat: no-repeat;
-            animation: gradientShift 8s ease infinite;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%),
+                linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+            background-size: 400% 400%, 400% 400%, 400% 400%, 100% 100%;
+            animation: cosmicShift 12s ease infinite;
             position: relative;
         }
         
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        @keyframes cosmicShift {
+            0%, 100% { 
+                background-position: 0% 50%, 100% 50%, 50% 0%, center;
+                filter: hue-rotate(0deg);
+            }
+            25% { 
+                background-position: 100% 50%, 0% 50%, 0% 100%, center;
+                filter: hue-rotate(90deg);
+            }
+            50% { 
+                background-position: 50% 100%, 50% 0%, 100% 50%, center;
+                filter: hue-rotate(180deg);
+            }
+            75% { 
+                background-position: 0% 0%, 100% 100%, 50% 50%, center;
+                filter: hue-rotate(270deg);
+            }
         }
         
-        /* 动态粒子背景 */
+        /* 炫酷粒子背景系统 */
         .particles {
             position: fixed;
             top: 0;
@@ -49,36 +64,113 @@
             height: 100%;
             pointer-events: none;
             z-index: 1;
+            overflow: hidden;
         }
         
         .particle {
             position: absolute;
-            background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
+            animation: cosmicFloat 8s ease-in-out infinite;
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        .particle.neon {
+            background: radial-gradient(circle, #00ffff 0%, transparent 70%);
+            box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff, 0 0 60px #00ffff;
+        }
+        
+        .particle.plasma {
+            background: radial-gradient(circle, #ff00ff 0%, transparent 70%);
+            box-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff, 0 0 60px #ff00ff;
+        }
+        
+        .particle.energy {
+            background: radial-gradient(circle, #ffff00 0%, transparent 70%);
+            box-shadow: 0 0 20px #ffff00, 0 0 40px #ffff00, 0 0 60px #ffff00;
+        }
+        
+        @keyframes cosmicFloat {
+            0% { 
+                transform: translateY(100vh) translateX(0px) rotate(0deg) scale(0);
+                opacity: 0;
+            }
+            10% { 
+                opacity: 1;
+                transform: translateY(90vh) translateX(10px) rotate(36deg) scale(1);
+            }
+            50% { 
+                opacity: 1;
+                transform: translateY(50vh) translateX(-20px) rotate(180deg) scale(1.2);
+            }
+            90% { 
+                opacity: 1;
+                transform: translateY(10vh) translateX(30px) rotate(324deg) scale(0.8);
+            }
+            100% { 
+                transform: translateY(-10vh) translateX(0px) rotate(360deg) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        /* 霓虹灯边框效果 */
+        .neon-border {
+            position: relative;
+        }
+        
+        .neon-border::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ffff);
+            border-radius: inherit;
+            z-index: -1;
+            animation: neonRotate 3s linear infinite;
+        }
+        
+        @keyframes neonRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         #gameCanvas {
-            border: 2px solid #444;
+            border: 3px solid #00ffff;
             background: transparent;
             width: 100%;
             height: 100%;
             filter: blur(5px); /* 初始模糊效果 */
             transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            box-shadow: 0 0 50px rgba(102, 126, 234, 0.3);
+            box-shadow: 
+                0 0 30px #00ffff,
+                0 0 60px #00ffff,
+                inset 0 0 30px rgba(0, 255, 255, 0.1);
+            border-radius: 10px;
+            position: relative;
+        }
+        
+        #gameCanvas::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ffff);
+            border-radius: 15px;
+            z-index: -1;
+            animation: neonRotate 4s linear infinite;
+            opacity: 0.7;
         }
         
         #gameCanvas.game-active {
             filter: none;
-            box-shadow: 0 0 80px rgba(102, 126, 234, 0.6);
-            border-color: #667eea;
+            box-shadow: 
+                0 0 50px #00ffff,
+                0 0 100px #00ffff,
+                0 0 150px #00ffff,
+                inset 0 0 50px rgba(0, 255, 255, 0.2);
+            border-color: #00ffff;
         }
         
         #welcomeScreen {
@@ -91,11 +183,37 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: radial-gradient(circle at center, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.9) 100%);
-            backdrop-filter: blur(10px);
+            background: 
+                radial-gradient(circle at 30% 70%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at center, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.95) 100%);
+            backdrop-filter: blur(15px);
             z-index: 100;
             animation: fadeInScale 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             overflow: hidden;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 
+                inset 0 0 50px rgba(0, 255, 255, 0.1),
+                inset 0 0 100px rgba(255, 0, 255, 0.1);
+        }
+        
+        #welcomeScreen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(45deg, transparent 30%, rgba(0, 255, 255, 0.03) 50%, transparent 70%),
+                linear-gradient(-45deg, transparent 30%, rgba(255, 0, 255, 0.03) 50%, transparent 70%);
+            animation: scanLines 4s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes scanLines {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
         
         /* 动态画布背景 */
@@ -109,43 +227,9 @@
             opacity: 0.3;
         }
         
-        /* 动态几何图形样式 */
-        .geometric-shape {
-            position: absolute;
-            border-radius: 50%;
-            background: linear-gradient(45deg, rgba(102, 126, 234, 0.6), rgba(118, 75, 162, 0.6));
-            animation: floatGeometric 8s ease-in-out infinite;
-        }
+        /* 动态几何图形样式已移除 */
         
-        .geometric-triangle {
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-style: solid;
-            animation: rotateTriangle 6s linear infinite;
-        }
-        
-        .geometric-square {
-            position: absolute;
-            background: linear-gradient(45deg, rgba(52, 152, 219, 0.4), rgba(155, 89, 182, 0.4));
-            animation: rotateSquare 10s linear infinite;
-        }
-        
-        @keyframes floatGeometric {
-            0%, 100% { transform: translateY(0px) scale(1); }
-            50% { transform: translateY(-20px) scale(1.1); }
-        }
-        
-        @keyframes rotateTriangle {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        @keyframes rotateSquare {
-            0% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(180deg) scale(1.2); }
-            100% { transform: rotate(360deg) scale(1); }
-        }
+
         
         @keyframes fadeInScale {
             0% { opacity: 0; transform: scale(0.9); }
@@ -153,17 +237,51 @@
         }
         
         #welcomeMessage {
-            color: white;
-            font-size: 2em;
-            margin-bottom: 30px;
+            color: #ffffff;
+            font-size: 2.5em;
+            margin-bottom: 40px;
             text-align: center;
-            animation: textGlow 2s ease-in-out infinite alternate;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            animation: cyberpunkGlow 3s ease-in-out infinite;
+            text-shadow: 
+                0 0 10px #00ffff,
+                0 0 20px #00ffff,
+                0 0 30px #00ffff,
+                0 0 40px #ff00ff;
+            font-weight: bold;
+            letter-spacing: 2px;
+            position: relative;
+            background: linear-gradient(45deg, #00ffff, #ff00ff, #ffff00, #00ffff);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: cyberpunkGlow 3s ease-in-out infinite, gradientText 4s ease infinite;
         }
         
-        @keyframes textGlow {
-            0% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 0 0 30px rgba(102, 126, 234, 0.3); }
-            100% { text-shadow: 0 0 30px rgba(255, 255, 255, 0.8), 0 0 40px rgba(102, 126, 234, 0.6); }
+        @keyframes cyberpunkGlow {
+            0%, 100% { 
+                text-shadow: 
+                    0 0 10px #00ffff,
+                    0 0 20px #00ffff,
+                    0 0 30px #00ffff,
+                    0 0 40px #ff00ff;
+                transform: scale(1);
+            }
+            50% { 
+                text-shadow: 
+                    0 0 20px #00ffff,
+                    0 0 30px #00ffff,
+                    0 0 40px #00ffff,
+                    0 0 50px #ff00ff,
+                    0 0 60px #ffff00;
+                transform: scale(1.02);
+            }
+        }
+        
+        @keyframes gradientText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
         .gameButton {
             padding: 15px 30px;
@@ -199,6 +317,348 @@
         }
         .gameButton:active {
             transform: translateY(-1px) scale(1.02);
+        }
+        
+        /* 现代化按钮样式 */
+        .modern-button {
+            position: relative;
+            padding: 15px 25px;
+            margin: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-width: 140px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        .plaza-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #00ffff 0%, #0080ff 50%, #004080 100%);
+            border: 3px solid #00ffff;
+            box-shadow: 
+                0 0 20px #00ffff,
+                0 0 40px #00ffff,
+                inset 0 0 20px rgba(0, 255, 255, 0.2);
+            animation: neonPulse 2s ease-in-out infinite alternate;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: unset;
+        }
+        
+        .create-room-button {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ff00ff 0%, #ff0080 50%, #800040 100%);
+            border: 3px solid #ff00ff;
+            box-shadow: 
+                0 0 20px #ff00ff,
+                0 0 40px #ff00ff,
+                inset 0 0 20px rgba(255, 0, 255, 0.2);
+            animation: neonPulse 2s ease-in-out infinite alternate;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: unset;
+        }
+        
+        @keyframes neonPulse {
+            0% {
+                box-shadow: 
+                    0 0 20px currentColor,
+                    0 0 40px currentColor,
+                    inset 0 0 20px rgba(255, 255, 255, 0.1);
+                transform: scale(1);
+            }
+            100% {
+                box-shadow: 
+                    0 0 30px currentColor,
+                    0 0 60px currentColor,
+                    0 0 80px currentColor,
+                    inset 0 0 30px rgba(255, 255, 255, 0.2);
+                transform: scale(1.05);
+            }
+        }
+        
+        .modern-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .plaza-button:hover {
+            background: radial-gradient(circle, #00ffff 0%, #00ccff 30%, #0099ff 70%, #0066cc 100%);
+            box-shadow: 
+                0 0 40px #00ffff,
+                0 0 80px #00ffff,
+                0 0 120px #00ffff,
+                inset 0 0 30px rgba(0, 255, 255, 0.3);
+            transform: translateY(-5px) scale(1.1);
+            animation: neonPulse 1s ease-in-out infinite alternate;
+        }
+        
+        .create-room-button:hover {
+            background: radial-gradient(circle, #ff00ff 0%, #ff00cc 30%, #ff0099 70%, #cc0066 100%);
+            box-shadow: 
+                0 0 40px #ff00ff,
+                0 0 80px #ff00ff,
+                0 0 120px #ff00ff,
+                inset 0 0 30px rgba(255, 0, 255, 0.3);
+            transform: translateY(-5px) scale(1.1);
+            animation: neonPulse 1s ease-in-out infinite alternate;
+        }
+        
+        .modern-button:active {
+            transform: translateY(-1px) scale(1.02);
+        }
+        
+        .button-icon {
+            font-size: 1.8em;
+            animation: iconPulse 2s ease-in-out infinite;
+            margin-bottom: 2px;
+        }
+        
+        .button-text {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            font-size: 0.7em;
+            text-align: center;
+            line-height: 1;
+        }
+        
+        .plaza-button .button-text,
+        .create-room-button .button-text {
+            font-size: 0.6em;
+            font-weight: 700;
+            text-shadow: 0 0 10px currentColor;
+        }
+        
+        .plaza-button .button-icon,
+        .create-room-button .button-icon {
+            font-size: 1.5em;
+            filter: drop-shadow(0 0 8px currentColor);
+        }
+        
+        /* 按钮光圈效果已移除 */
+        
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* 现代化弹窗样式 */
+        .modern-modal {
+            backdrop-filter: blur(10px);
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        
+        .modern-modal-content {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border: 2px solid rgba(52, 152, 219, 0.6);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            animation: modalSlideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modern-modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3498db, #9b59b6, #e74c3c, #f39c12, #2ecc71);
+            background-size: 300% 100%;
+            animation: gradientMove 3s ease infinite;
+        }
+        
+        .modern-modal h2, .modern-modal h3 {
+            background: linear-gradient(45deg, #3498db, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            text-shadow: none;
+        }
+        
+        .modern-button-primary {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modern-button-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.4);
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        }
+        
+        .modern-button-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .modern-button-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
+            background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+        }
+        
+        .modern-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(52, 152, 219, 0.3);
+            border-radius: 10px;
+            color: white;
+            padding: 12px 15px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modern-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .room-info-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .room-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+        
+        .stat-item {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .stat-value {
+            color: #3498db;
+            font-size: 1.2em;
+            text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* 创建房间弹窗特殊动画 */
+        .modern-modal {
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        
+        .modern-modal .modern-modal-content {
+            animation: modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        /* 游戏模式按钮特殊效果 */
+        #gameModeModal button[onclick*="selectGameMode"] {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #gameModeModal button[onclick*="selectGameMode"]:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        #gameModeModal button[onclick*="selectGameMode"]:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        #gameModeModal button[onclick*="selectGameMode"]:hover:before {
+            left: 100%;
+        }
+        
+        /* 人数选择按钮动画 */
+        #playerCountModal button[onclick*="selectPlayerCount"] {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #playerCountModal button[onclick*="selectPlayerCount"]:hover {
+            transform: scale(1.1) rotate(2deg);
+        }
+        
+        /* 输入框聚焦效果 */
+        .modern-input:focus {
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.6);
+            border-color: #3498db;
         }
         
         /* 游戏按钮样式 - 恢复原始矩形样式并移到左边 */
@@ -295,57 +755,100 @@
             background-color: #27ae60 !important;
         }
         
-        /* 建议按钮样式 */
+        /* 建议按钮样式 - 炫酷版 */
         #suggestionButton {
             position: absolute;
             top: 20px;
-            left: 200px; /* 移到左侧 */
+            left: 200px;
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background-color: #3498db;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             z-index: 102;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            display: none; /* 默认隐藏，通过JavaScript控制显示 */
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4), 0 0 20px rgba(102, 126, 234, 0.2);
+            display: none;
             align-items: center;
             justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #suggestionButton::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
         }
         
         #suggestionButton:hover {
-            background-color: #2980b9;
-            transform: scale(1.05);
+            background: linear-gradient(45deg, #764ba2 0%, #667eea 100%);
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6), 0 0 30px rgba(102, 126, 234, 0.4);
         }
         
-        /* 邮箱按钮样式 */
+        #suggestionButton:hover::before {
+            left: 100%;
+        }
+        
+        /* 邮箱按钮样式 - 炫酷版 */
         #mailboxButton {
             position: absolute;
             top: 20px;
-            left: 110px; /* 移到左侧 */
+            left: 110px;
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background-color: #e74c3c;
+            background: linear-gradient(45deg, #ff6b6b 0%, #ee5a24 100%);
             color: white;
             border: none;
             font-size: 24px;
             cursor: pointer;
             z-index: 102;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            display: none; /* 默认隐藏，通过JavaScript控制显示 */
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4), 0 0 20px rgba(255, 107, 107, 0.2);
+            display: none;
             align-items: center;
             justify-content: center;
+            position: relative;
+            overflow: hidden;
+            animation: mailboxPulse 2s infinite;
+        }
+        
+        @keyframes mailboxPulse {
+            0%, 100% { box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4), 0 0 20px rgba(255, 107, 107, 0.2); }
+            50% { box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6), 0 0 30px rgba(255, 107, 107, 0.4); }
+        }
+        
+        #mailboxButton::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s;
         }
         
         #mailboxButton:hover {
-            background-color: #c0392b;
-            transform: scale(1.05);
+            background: linear-gradient(45deg, #ee5a24 0%, #ff6b6b 100%);
+            transform: scale(1.15) rotate(-5deg);
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.7), 0 0 40px rgba(255, 107, 107, 0.5);
+            animation: none;
+        }
+        
+        #mailboxButton:hover::before {
+            left: 100%;
         }
         
         /* 创建房间按钮样式 */
@@ -424,7 +927,7 @@
             display: none;
         }
         
-        /* 邮箱弹窗样式 */
+        /* 邮箱弹窗样式 - 炫酷版 */
         #mailboxModal {
             display: none;
             position: fixed;
@@ -432,59 +935,104 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.9) 100%);
+            backdrop-filter: blur(10px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            animation: modalBackdropFadeIn 0.4s ease-out;
+        }
+        
+        @keyframes modalBackdropFadeIn {
+            from { opacity: 0; backdrop-filter: blur(0px); }
+            to { opacity: 1; backdrop-filter: blur(10px); }
         }
         
         #mailboxModalContent {
-            background-color: white;
-            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
             width: 500px;
             max-height: 600px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 50px rgba(102, 126, 234, 0.3);
             overflow: hidden;
+            position: relative;
+            animation: mailboxModalSlideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        @keyframes mailboxModalSlideIn {
+            from { transform: translateY(-50px) scale(0.9); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        
+        #mailboxModalContent::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: mailboxShimmer 3s infinite;
+        }
+        
+        @keyframes mailboxShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
         
         .mailbox-header {
-            background-color: #3498db;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            backdrop-filter: blur(10px);
             color: white;
-            padding: 20px;
+            padding: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            z-index: 1;
         }
         
         .mailbox-header h2 {
             margin: 0;
-            font-size: 20px;
+            font-size: 22px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            font-weight: 600;
         }
         
         .close-btn {
-            background: none;
-            border: none;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
             color: white;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
             padding: 0;
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.3s;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 2;
         }
         
         .close-btn:hover {
-            background-color: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.2);
         }
         
         .mailbox-messages {
             max-height: 500px;
             overflow-y: auto;
-            padding: 20px;
+            padding: 25px;
+            background: rgba(255,255,255,0.95);
+            position: relative;
+            z-index: 1;
         }
         
         .empty-state {
@@ -495,53 +1043,83 @@
         }
         
         .message-item {
-            background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-left: 4px solid #3498db;
+            background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.8) 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid transparent;
+            background-clip: padding-box;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1), 0 0 20px rgba(102, 126, 234, 0.1);
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .message-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .message-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15), 0 0 30px rgba(102, 126, 234, 0.2);
         }
         
         .message-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
         
         .message-time {
-            color: #7f8c8d;
-            font-size: 12px;
+            color: #8e44ad;
+            font-size: 11px;
+            font-weight: 500;
+            background: rgba(142, 68, 173, 0.1);
+            padding: 4px 8px;
+            border-radius: 12px;
         }
         
         .message-from {
-            color: #3498db;
-            font-size: 12px;
+            color: #667eea;
+            font-size: 13px;
             font-weight: bold;
+            text-shadow: 0 1px 3px rgba(102, 126, 234, 0.3);
         }
         
         .message-content {
             color: #2c3e50;
-            line-height: 1.4;
-            margin-bottom: 10px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 14px;
         }
         
         .message-dismiss {
-            background-color: #3498db;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
+            padding: 8px 16px;
+            border-radius: 20px;
             cursor: pointer;
             font-size: 12px;
-            transition: background-color 0.3s;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
         
         .message-dismiss:hover {
-            background-color: #2980b9;
+            background: linear-gradient(45deg, #764ba2 0%, #667eea 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
         
-        /* 建议弹窗样式 */
+        /* 建议弹窗样式 - 炫酷版 */
         #suggestionModal {
             display: none;
             position: fixed;
@@ -551,93 +1129,215 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0,0,0,0.5);
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.9) 100%);
+            backdrop-filter: blur(10px);
+            animation: suggestionBackdropFadeIn 0.4s ease-out;
+        }
+        
+        @keyframes suggestionBackdropFadeIn {
+            from { opacity: 0; backdrop-filter: blur(0px); }
+            to { opacity: 1; backdrop-filter: blur(10px); }
         }
         
         #suggestionModalContent {
-            background-color: #fefefe;
-            margin: 10% auto;
-            padding: 30px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 8% auto;
+            padding: 0;
+            border: none;
+            width: 85%;
+            max-width: 550px;
+            border-radius: 25px;
             position: relative;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5), 0 0 50px rgba(102, 126, 234, 0.3);
+            overflow: hidden;
+            animation: suggestionModalSlideIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        @keyframes suggestionModalSlideIn {
+            from { transform: translateY(-50px) scale(0.9); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        
+        #suggestionModalContent::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: suggestionShimmer 3s infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes suggestionShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        #suggestionModalContent h2 {
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
+            backdrop-filter: blur(10px);
+            color: white;
+            margin: 0;
+            padding: 25px 30px;
+            font-size: 24px;
+            font-weight: 600;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            z-index: 1;
+        }
+        
+        #suggestionModalContent p {
+            color: white;
+            margin: 0;
+            padding: 20px 30px 10px;
+            font-size: 16px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
         }
         
         #suggestionTextarea {
-            width: 100%;
-            height: 150px;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
+            width: calc(100% - 60px);
+            height: 160px;
+            padding: 20px;
+            margin: 20px 30px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            font-size: 15px;
             resize: vertical;
             box-sizing: border-box;
+            background: rgba(255,255,255,0.95);
+            color: #2c3e50;
+            font-family: inherit;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
         }
         
         #suggestionTextarea:focus {
-            border-color: #3498db;
+            border-color: rgba(255,255,255,0.6);
             outline: none;
+            box-shadow: 0 0 20px rgba(255,255,255,0.3), inset 0 0 20px rgba(102, 126, 234, 0.1);
+            background: rgba(255,255,255,1);
         }
         
         .suggestionButtons {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
+            padding: 0 30px 30px;
+            gap: 15px;
+            position: relative;
+            z-index: 1;
         }
         
         .suggestionBtn {
-            padding: 10px 20px;
+            padding: 12px 25px;
             border: none;
-            border-radius: 5px;
+            border-radius: 25px;
             cursor: pointer;
             font-size: 14px;
-            transition: background-color 0.3s ease;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .suggestionBtn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s;
+        }
+        
+        .suggestionBtn:hover::before {
+            left: 100%;
         }
         
         .suggestionBtn.submit {
-            background-color: #27ae60;
+            background: linear-gradient(45deg, #00b894 0%, #00cec9 100%);
             color: white;
+            box-shadow: 0 8px 25px rgba(0, 184, 148, 0.4);
         }
         
         .suggestionBtn.submit:hover {
-            background-color: #229954;
+            background: linear-gradient(45deg, #00cec9 0%, #00b894 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0, 184, 148, 0.6);
         }
         
         .suggestionBtn.cancel {
-            background-color: #95a5a6;
+            background: linear-gradient(45deg, #636e72 0%, #74b9ff 100%);
             color: white;
+            box-shadow: 0 8px 25px rgba(99, 110, 114, 0.4);
         }
         
         .suggestionBtn.cancel:hover {
-            background-color: #7f8c8d;
+            background: linear-gradient(45deg, #74b9ff 0%, #636e72 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(99, 110, 114, 0.6);
         }
         
-        /* 建议通知样式 */
+        /* 建议通知样式 - 炫酷版 */
          #suggestionNotification {
              position: fixed;
-             top: 20px;
-             right: 20px;
-             background: #4CAF50;
+             top: 30px;
+             right: 30px;
+             background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
              color: white;
-             padding: 20px;
-             border-radius: 10px;
-             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+             padding: 25px;
+             border-radius: 20px;
+             box-shadow: 0 15px 40px rgba(0, 184, 148, 0.4), 0 0 30px rgba(0, 184, 148, 0.2);
              display: none;
              z-index: 1001;
-             max-width: 350px;
-             animation: slideIn 0.5s ease-out;
+             max-width: 380px;
+             animation: notificationSlideIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+             backdrop-filter: blur(10px);
+             border: 1px solid rgba(255,255,255,0.2);
+             position: relative;
+             overflow: hidden;
+         }
+         
+         #suggestionNotification::before {
+             content: '';
+             position: absolute;
+             top: 0;
+             left: -100%;
+             width: 100%;
+             height: 100%;
+             background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+             animation: notificationShimmer 2s infinite;
+         }
+         
+         @keyframes notificationShimmer {
+             0% { left: -100%; }
+             100% { left: 100%; }
          }
          
          #suggestionNotification.show {
              display: block;
-             animation: slideIn 0.5s ease-out;
+             animation: notificationSlideIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
          }
          
-         @keyframes slideIn {
-             from { transform: translateX(100%); opacity: 0; }
-             to { transform: translateX(0); opacity: 1; }
+         @keyframes notificationSlideIn {
+             from { 
+                 transform: translateX(100%) scale(0.8); 
+                 opacity: 0;
+                 box-shadow: 0 5px 15px rgba(0, 184, 148, 0.2);
+             }
+             to { 
+                 transform: translateX(0) scale(1); 
+                 opacity: 1;
+                 box-shadow: 0 15px 40px rgba(0, 184, 148, 0.4), 0 0 30px rgba(0, 184, 148, 0.2);
+             }
          }
          
          #suggestionNotification .notification-content {
@@ -1101,11 +1801,7 @@
         <span id="unreadCount" class="unread-badge">0</span>
     </button>
     
-    <!-- 创建房间按钮 -->
-    <button id="createRoomButton">创建房间</button>
-    
-    <!-- 广场按钮 -->
-    <button id="squareButton">广场</button>
+    <!-- 广场按钮和创建房间按钮已移动到游戏按钮区域最前面 -->
     
     <!-- 建议弹窗 -->
     <div id="suggestionModal">
@@ -1248,6 +1944,135 @@
                 </div>
             </div>
         </div>
+        
+        <!-- 创建房间弹窗系列 -->
+        <!-- 房间名输入弹窗 -->
+        <div id="roomNameModal" class="modern-modal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div class="modern-modal-content" style="margin: 15% auto; padding: 20px; width: 80%; max-width: 400px; text-align: center; color: white;">
+                <h2>🏠 创建房间</h2>
+                <p style="margin: 15px 0; opacity: 0.9;">请填写房间名</p>
+                <input type="text" id="roomNameInput" placeholder="输入房间名" class="modern-input" style="width: 80%; margin: 10px 0;">
+                <div style="margin-top: 20px;">
+                    <button onclick="confirmRoomName()" class="modern-button-primary" style="margin: 0 10px;">✅ 确认</button>
+                    <button onclick="closeRoomModals()" class="modern-button-danger" style="margin: 0 10px;">❌ 取消</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 游戏模式选择弹窗 -->
+        <div id="gameModeModal" class="modern-modal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div class="modern-modal-content" style="margin: 15% auto; padding: 20px; width: 80%; max-width: 400px; text-align: center; color: white;">
+                <h2>🎮 选择游戏模式</h2>
+                <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                    <button onclick="selectGameMode('yellowVsGreen')" class="modern-button-primary" style="background: linear-gradient(45deg, #FFD700, #32CD32); padding: 15px 20px; font-size: 16px; font-weight: bold; transition: all 0.3s ease;">🟡 黄VS绿 🟢</button>
+                    <button onclick="selectGameMode('battleRoyale')" class="modern-button-primary" style="background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4); padding: 15px 20px; font-size: 16px; font-weight: bold; transition: all 0.3s ease;">⚔️ 大乱斗 ⚔️</button>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button onclick="closeRoomModals()" class="modern-button-danger">❌ 取消</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 人数选择弹窗 -->
+        <div id="playerCountModal" class="modern-modal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div class="modern-modal-content" style="margin: 15% auto; padding: 20px; width: 80%; max-width: 400px; text-align: center; color: white;">
+                <h2>👥 选择人数</h2>
+                <div style="display: flex; justify-content: space-around; margin-top: 20px; gap: 10px;">
+                    <button onclick="selectPlayerCount(2)" class="modern-button-primary" style="background-color: #2196F3; padding: 15px 20px; font-size: 16px; flex: 1;">👥 二人</button>
+                    <button onclick="selectPlayerCount(3)" class="modern-button-primary" style="background-color: #FF9800; padding: 15px 20px; font-size: 16px; flex: 1;">👥👥 三人</button>
+                    <button onclick="selectPlayerCount(4)" class="modern-button-primary" style="background-color: #9C27B0; padding: 15px 20px; font-size: 16px; flex: 1;">👥👥👥 四人</button>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button onclick="closeRoomModals()" class="modern-button-danger">❌ 取消</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 公开性选择弹窗 -->
+        <div id="privacyModal" class="modern-modal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div class="modern-modal-content" style="margin: 15% auto; padding: 20px; width: 80%; max-width: 400px; text-align: center; color: white;">
+                <h2>🔒 选择公开性</h2>
+                <div style="display: flex; justify-content: space-around; margin-top: 20px; gap: 15px;">
+                    <button onclick="selectPrivacy('public')" class="modern-button-primary" style="background-color: #4CAF50; padding: 15px 20px; font-size: 16px; flex: 1;">🌐 公开</button>
+                    <button onclick="selectPrivacy('private')" class="modern-button-primary" style="background-color: #FF5722; padding: 15px 20px; font-size: 16px; flex: 1;">🔐 需密码</button>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button onclick="closeRoomModals()" class="modern-button-danger">❌ 取消</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 密码设置弹窗 -->
+        <div id="passwordModal" class="modern-modal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div class="modern-modal-content" style="margin: 15% auto; padding: 20px; width: 80%; max-width: 400px; text-align: center; color: white;">
+                <h2>🔐 设置房间密码</h2>
+                <p style="margin: 15px 0; opacity: 0.9;">请输入六位房间密码</p>
+                <input type="password" id="roomPasswordInput" placeholder="输入6位密码" maxlength="6" class="modern-input" style="width: 80%; margin: 10px 0; text-align: center; letter-spacing: 5px;">
+                <div style="margin-top: 20px;">
+                    <button onclick="confirmPassword()" class="modern-button-primary" style="margin: 0 10px;">✅ 确认</button>
+                    <button onclick="closeRoomModals()" class="modern-button-danger" style="margin: 0 10px;">❌ 取消</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 等候区界面 -->
+        <div id="waitingRoomModal" class="modern-modal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9);">
+            <div class="modern-modal-content" style="margin: 10% auto; padding: 30px; width: 80%; max-width: 500px; text-align: center; color: white;">
+                <h2>🏠 等候区</h2>
+                <div id="roomInfoDisplay" class="room-info-card"></div>
+                <div class="room-stats">
+                    <div class="stat-item">👥 人数<br><span id="playerCountDisplay" class="stat-value">1/4</span></div>
+                    <div class="stat-item">⏰ 倒计时<br><span id="countdownDisplay" class="stat-value">2:00</span></div>
+                </div>
+                <button id="leaveRoomBtn" onclick="leaveRoom()" class="modern-button-danger">🚪 解散房间</button>
+            </div>
+        </div>
+         
+         <!-- 广场界面 -->
+         <div id="plazaModal" class="modern-modal" style="display: none; position: fixed; z-index: 20000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9);" onclick="if(event.target === this) closePlaza()">
+             <div class="modern-modal-content" style="margin: 5% auto; padding: 30px; width: 90%; max-width: 600px; color: white; max-height: 80vh; overflow-y: auto;">
+                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                     <h2>🏛️ 房间广场</h2>
+                     <button onclick="closePlaza()" class="modern-button-danger" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 5px 10px;">&times;</button>
+                 </div>
+                 <div id="roomListContainer">
+                     <div id="emptyPlaza" style="text-align: center; color: #bdc3c7; font-size: 18px; margin: 50px 0; padding: 30px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; border: 1px dashed rgba(189, 195, 199, 0.3);">🏜️ 这里是空空哒~<br><small style="font-size: 14px; opacity: 0.7;">等待有人创建房间</small></div>
+                 </div>
+             </div>
+         </div>
+         
+         <!-- 房间详情弹窗 -->
+         <div id="roomDetailModal" class="modern-modal" style="display: none; position: fixed; z-index: 20001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6);" onclick="if(event.target === this) closeRoomDetail()">
+             <div class="modern-modal-content" style="margin: 15% auto; padding: 25px; width: 80%; max-width: 400px; color: white; position: relative;">
+                 <button onclick="closeRoomDetail()" class="modern-button-danger" style="position: absolute; top: 10px; right: 15px; background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 5px 10px;">&times;</button>
+                 <div id="roomDetailContent" class="room-info-card"></div>
+                 <div style="text-align: center; margin-top: 20px;">
+                     <button id="joinRoomBtn" onclick="joinRoom()" class="modern-button-primary" style="margin-right: 10px;">🚪 加入房间</button>
+                     <button onclick="closeRoomDetail()" class="modern-button-danger">❌ 取消</button>
+                 </div>
+             </div>
+         </div>
+         
+         <!-- 密码输入弹窗 -->
+         <div id="joinPasswordModal" class="modern-modal" style="display: none; position: fixed; z-index: 20002; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6);" onclick="if(event.target === this) closeJoinPassword()">
+             <div class="modern-modal-content" style="margin: 20% auto; padding: 25px; width: 80%; max-width: 350px; color: white; text-align: center;">
+                 <h3>🔐 输入房间密码</h3>
+                 <input type="password" id="joinPasswordInput" placeholder="输入6位密码" maxlength="6" class="modern-input" style="width: 80%; margin: 15px 0; text-align: center; letter-spacing: 5px;">
+                 <div style="margin-top: 20px;">
+                     <button onclick="confirmJoinPassword()" class="modern-button-primary" style="margin: 0 10px;">✅ 确认</button>
+                     <button onclick="closeJoinPassword()" class="modern-button-danger" style="margin: 0 10px;">❌ 取消</button>
+                 </div>
+             </div>
+         </div>
+         
+         <button id="squareButton" class="modern-button plaza-button">
+            <span class="button-icon">🏛️</span>
+            <span class="button-text">广场</span>
+          </button>
+          <button id="createRoomButton" class="modern-button create-room-button">
+            <span class="button-icon">🏠</span>
+            <span class="button-text">创建房间</span>
+          </button>
         <button id="singlePlayerBtn" class="gameButton play-button">🎮<br>单人对战</button>
         <button id="multiPlayerBtn" class="gameButton play-button">👥<br>双人对战</button>
         <button id="exitBtn" class="gameButton play-button" onclick="showExitConfirm()">🚪<br>退出游戏</button>
@@ -1315,6 +2140,273 @@
         </div>
     </div>
     <script>
+        // 炫酷粒子效果系统
+        function createParticleSystem() {
+            const particlesContainer = document.createElement('div');
+            particlesContainer.className = 'particles';
+            document.body.appendChild(particlesContainer);
+            
+            function createParticle() {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                // 随机选择粒子类型
+                const types = ['neon', 'plasma', 'energy'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                particle.classList.add(type);
+                
+                // 随机大小和位置
+                const size = Math.random() * 8 + 2;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                particle.style.left = Math.random() * window.innerWidth + 'px';
+                particle.style.bottom = '-10px';
+                
+                // 随机动画延迟
+                particle.style.animationDelay = Math.random() * 2 + 's';
+                particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+                
+                particlesContainer.appendChild(particle);
+                
+                // 动画结束后移除粒子
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 8000);
+            }
+            
+            // 定期创建粒子
+            setInterval(createParticle, 300);
+            
+            // 初始创建一些粒子
+            for (let i = 0; i < 10; i++) {
+                setTimeout(createParticle, i * 100);
+            }
+        }
+        
+        // 动态几何图形系统已移除
+        
+        // 页面加载完成后启动效果
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticleSystem();
+        });
+        
+        // 房间系统全局变量
+        let currentRoom = null;
+        let isRoomOwner = false;
+        let roomList = [];
+        let selectedRoom = null;
+        let plazaUpdateInterval = null;
+        let roomCountdown = null;
+        
+        // 房间系统核心函数定义（提前定义以供HTML onclick使用）
+        function confirmRoomName() {
+             const roomName = document.getElementById('roomNameInput').value.trim();
+             if (!roomName) {
+                 alert('请输入房间名！');
+                 return;
+             }
+             
+             currentRoom = {
+                 name: roomName,
+                 mode: null,
+                 playerCount: null,
+                 privacy: null,
+                 password: null,
+                 currentPlayers: 1,
+                 players: [currentUser ? currentUser.name : '玩家1']
+             };
+             
+             document.getElementById('roomNameModal').style.display = 'none';
+             document.getElementById('gameModeModal').style.display = 'block';
+         }
+        
+        function closeRoomModals() {
+            document.getElementById('roomNameModal').style.display = 'none';
+            document.getElementById('gameModeModal').style.display = 'none';
+            document.getElementById('playerCountModal').style.display = 'none';
+            document.getElementById('privacyModal').style.display = 'none';
+            document.getElementById('passwordModal').style.display = 'none';
+            
+            // 清空输入框
+            document.getElementById('roomNameInput').value = '';
+            document.getElementById('roomPasswordInput').value = '';
+            
+            currentRoom = null;
+        }
+        
+        function closePlaza() {
+             document.getElementById('plazaModal').style.display = 'none';
+             if (plazaUpdateInterval) {
+                 clearInterval(plazaUpdateInterval);
+                 plazaUpdateInterval = null;
+             }
+         }
+         
+         // 选择游戏模式
+         function selectGameMode(mode) {
+             if (mode === 'yellowVsGreen') {
+                 alert('功能开发中');
+                 return;
+             }
+             
+             currentRoom.mode = mode;
+             document.getElementById('gameModeModal').style.display = 'none';
+             document.getElementById('playerCountModal').style.display = 'block';
+         }
+         
+         // 选择人数
+         function selectPlayerCount(count) {
+             currentRoom.playerCount = count;
+             document.getElementById('playerCountModal').style.display = 'none';
+             document.getElementById('privacyModal').style.display = 'block';
+         }
+         
+         // 选择公开性
+         function selectPrivacy(privacy) {
+             currentRoom.privacy = privacy;
+             document.getElementById('privacyModal').style.display = 'none';
+             
+             if (privacy === 'private') {
+                 document.getElementById('passwordModal').style.display = 'block';
+             } else {
+                 createRoomSuccess();
+             }
+         }
+         
+         // 确认密码
+         function confirmPassword() {
+             const password = document.getElementById('roomPasswordInput').value.trim();
+             if (password.length !== 6) {
+                 alert('请输入6位密码！');
+                 return;
+             }
+             
+             currentRoom.password = password;
+             document.getElementById('passwordModal').style.display = 'none';
+             createRoomSuccess();
+         }
+         
+         // 创建房间成功
+         function createRoomSuccess() {
+             alert('创建成功！进入等候区');
+             isRoomOwner = true;
+             showWaitingRoom();
+         }
+         
+         // 显示等候区
+         function showWaitingRoom() {
+             // 隐藏所有游戏按钮
+             const gameButtons = document.querySelectorAll('.gameButton');
+             gameButtons.forEach(btn => {
+                 if (btn.id !== 'musicToggleBtn') {
+                     btn.style.display = 'none';
+                 }
+             });
+             
+             // 隐藏创建房间和广场按钮
+             document.getElementById('createRoomButton').style.display = 'none';
+             document.getElementById('squareButton').style.display = 'none';
+             
+             // 显示等候区
+             document.getElementById('waitingRoomModal').style.display = 'block';
+             
+             // 更新房间信息显示
+             updateRoomInfo();
+             
+             // 开始倒计时
+             startRoomCountdown();
+         }
+         
+         // 更新房间信息显示
+         function updateRoomInfo() {
+             const roomInfo = document.getElementById('roomInfoDisplay');
+             const playerCountDisplay = document.getElementById('playerCountDisplay');
+             const leaveBtn = document.getElementById('leaveRoomBtn');
+             
+             roomInfo.innerHTML = `
+                 <div><strong>房间名:</strong> ${currentRoom.name}</div>
+                 <div><strong>模式:</strong> ${currentRoom.mode === 'battleRoyale' ? '大乱斗' : currentRoom.mode}</div>
+                 <div><strong>公开性:</strong> ${currentRoom.privacy === 'public' ? '公开' : '需密码'}</div>
+             `;
+             
+             playerCountDisplay.textContent = `${currentRoom.currentPlayers}/${currentRoom.playerCount}`;
+             
+             // 更新按钮文本
+             leaveBtn.textContent = isRoomOwner ? '🚪 解散房间' : '🚪 退出房间';
+         }
+         
+         // 开始房间倒计时
+         function startRoomCountdown() {
+             let timeLeft = 120; // 2分钟
+             const countdownDisplay = document.getElementById('countdownDisplay');
+             
+             roomCountdown = setInterval(() => {
+                 const minutes = Math.floor(timeLeft / 60);
+                 const seconds = timeLeft % 60;
+                 countdownDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                 
+                 timeLeft--;
+                 
+                 // 检查是否人数已满，开始游戏
+                 if (currentRoom && currentRoom.currentPlayers >= currentRoom.playerCount) {
+                     clearInterval(roomCountdown);
+                     startGameCountdown();
+                     return;
+                 }
+                 
+                 if (timeLeft < 0) {
+                     clearInterval(roomCountdown);
+                     alert('时间到！房间自动解散');
+                     leaveRoom();
+                 }
+             }, 1000);
+         }
+         
+         // 离开房间
+         function leaveRoom() {
+             if (roomCountdown) {
+                 clearInterval(roomCountdown);
+                 roomCountdown = null;
+             }
+             
+             document.getElementById('waitingRoomModal').style.display = 'none';
+             
+             // 重新显示游戏按钮
+             const gameButtons = document.querySelectorAll('.gameButton');
+             gameButtons.forEach(btn => {
+                 btn.style.display = 'flex';
+             });
+             
+             // 重新显示创建房间和广场按钮
+             document.getElementById('createRoomButton').style.display = 'flex';
+             document.getElementById('squareButton').style.display = 'flex';
+             
+             currentRoom = null;
+             isRoomOwner = false;
+         }
+         
+         // 开始游戏倒计时
+         function startGameCountdown() {
+             let countdown = 3;
+             const countdownDisplay = document.getElementById('countdownDisplay');
+             countdownDisplay.textContent = countdown;
+             
+             const countdownInterval = setInterval(() => {
+                 countdown--;
+                 if (countdown > 0) {
+                     countdownDisplay.textContent = countdown;
+                 } else {
+                     countdownDisplay.textContent = '开始！';
+                     setTimeout(() => {
+                         startBattleRoyaleGame();
+                     }, 1000);
+                     clearInterval(countdownInterval);
+                 }
+             }, 1000);
+         }
+        
         // 云端用户数据存储系统
         // 云端存储配置 - 使用JSONBin.io服务
         // 注意：如果云端同步失败，系统会自动使用本地存储作为备份
@@ -3488,8 +4580,8 @@ function handleMouseClick(e) {
             activateAreaAttack(player);
         }
     } else {
-        // 单人模式：鼠标点击控制玩家1定点手雷抛射（保持原有功能）
-        handlePlayerGrenade(player, mouseX, mouseY);
+        // 单人模式：鼠标点击不再自动触发手雷，改为范围攻击
+        activateAreaAttack(player);
     }
 }
 
@@ -7288,15 +8380,528 @@ window.addEventListener('load', function() {
         hideMailboxModal();
     });
     
+    // 房间管理系统
+    let currentRoom = null;
+    let roomCountdown = null;
+    let isRoomOwner = false;
+    
     // 创建房间按钮点击事件
     document.getElementById('createRoomButton').addEventListener('click', function() {
-        alert('功能开发中');
+        showRoomNameModal();
     });
     
-    // 广场按钮点击事件
-    document.getElementById('squareButton').addEventListener('click', function() {
-        alert('功能开发中');
-    });
+    // 显示房间名输入弹窗
+    function showRoomNameModal() {
+        document.getElementById('roomNameModal').style.display = 'block';
+        document.getElementById('roomNameInput').focus();
+    }
+    
+    // confirmRoomName函数已在script开头定义
+    
+    // 房间创建相关函数已在script开头定义
+    
+    // showWaitingRoom函数已移动到script开头
+    
+    // updateRoomInfo函数已移动到script开头
+    
+    // startRoomCountdown和startGameCountdown函数已移动到script开头
+    
+    // startGameCountdown函数已移动到script开头
+    
+    // 大乱斗游戏状态
+    let battleRoyaleState = {
+        players: [],
+        alivePlayers: [],
+        gameStarted: false,
+        finalCircleActive: false,
+        circleRadius: 400,
+        circleCenter: { x: 400, y: 300 },
+        circleSpeed: 0.5 // 比原来慢10倍
+    };
+    
+    // 开始大乱斗游戏
+    function startBattleRoyaleGame() {
+        // 初始化游戏状态
+        battleRoyaleState.gameStarted = true;
+        battleRoyaleState.players = currentRoom.players.map((name, index) => ({
+            id: index,
+            name: name,
+            x: 0,
+            y: 0,
+            health: 100,
+            alive: true,
+            color: getPlayerColor(index)
+        }));
+        
+        battleRoyaleState.alivePlayers = [...battleRoyaleState.players];
+        
+        // 随机分散出生玩家
+        spawnPlayersRandomly();
+        
+        // 显示游戏界面
+        showGameInterface();
+        
+        // 开始游戏循环
+        startGameLoop();
+        
+        alert('大乱斗游戏开始！使用技能消灭其他玩家！');
+    }
+    
+    // 获取玩家颜色
+    function getPlayerColor(index) {
+        const colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12'];
+        return colors[index % colors.length];
+    }
+    
+    // 随机分散出生玩家
+    function spawnPlayersRandomly() {
+        const spawnPositions = [];
+        const minDistance = 100; // 最小距离防止重叠
+        
+        battleRoyaleState.players.forEach(player => {
+            let validPosition = false;
+            let attempts = 0;
+            
+            while (!validPosition && attempts < 50) {
+                const x = Math.random() * (canvas.width - 100) + 50;
+                const y = Math.random() * (canvas.height - 100) + 50;
+                
+                // 检查与其他玩家的距离
+                let tooClose = false;
+                for (let pos of spawnPositions) {
+                    const distance = Math.sqrt((x - pos.x) ** 2 + (y - pos.y) ** 2);
+                    if (distance < minDistance) {
+                        tooClose = true;
+                        break;
+                    }
+                }
+                
+                if (!tooClose) {
+                    player.x = x;
+                    player.y = y;
+                    spawnPositions.push({ x, y });
+                    validPosition = true;
+                }
+                
+                attempts++;
+            }
+        });
+    }
+    
+    // 显示游戏界面
+    function showGameInterface() {
+        // 隐藏等候区
+        document.getElementById('waitingRoomModal').style.display = 'none';
+        
+        // 显示游戏画布和控制
+        document.getElementById('gameCanvas').style.display = 'block';
+        
+        // 根据设备显示相应的控制
+        if (isMobile()) {
+            if (currentRoom.playerCount === 2) {
+                document.getElementById('mobileControlsMultiplayer').style.display = 'block';
+            } else {
+                document.getElementById('mobileControlsSingle').style.display = 'block';
+            }
+        }
+    }
+    
+    // 游戏主循环
+    function startGameLoop() {
+        const gameLoop = setInterval(() => {
+            if (!battleRoyaleState.gameStarted) {
+                clearInterval(gameLoop);
+                return;
+            }
+            
+            // 更新游戏状态
+            updateBattleRoyale();
+            
+            // 渲染游戏
+            renderBattleRoyale();
+            
+            // 检查胜利条件
+            checkVictoryCondition();
+            
+        }, 1000 / 60); // 60 FPS
+    }
+    
+    // 更新大乱斗游戏状态
+    function updateBattleRoyale() {
+        // 检查玩家碰撞
+        checkPlayerCollisions();
+        
+        // 更新决赛圈
+        updateFinalCircle();
+        
+        // 检查玩家是否在安全区
+        checkPlayersInSafeZone();
+    }
+    
+    // 检查玩家碰撞
+    function checkPlayerCollisions() {
+        for (let i = 0; i < battleRoyaleState.alivePlayers.length; i++) {
+            for (let j = i + 1; j < battleRoyaleState.alivePlayers.length; j++) {
+                const player1 = battleRoyaleState.alivePlayers[i];
+                const player2 = battleRoyaleState.alivePlayers[j];
+                
+                if (!player1.alive || !player2.alive) continue;
+                
+                const distance = Math.sqrt(
+                    (player1.x - player2.x) ** 2 + (player1.y - player2.y) ** 2
+                );
+                
+                // 如果距离小于碰撞阈值，造成伤害
+                if (distance < 30) {
+                    player1.health -= 1;
+                    player2.health -= 1;
+                    
+                    // 检查玩家是否死亡
+                    if (player1.health <= 0) {
+                        player1.alive = false;
+                        battleRoyaleState.alivePlayers = battleRoyaleState.alivePlayers.filter(p => p.id !== player1.id);
+                    }
+                    if (player2.health <= 0) {
+                        player2.alive = false;
+                        battleRoyaleState.alivePlayers = battleRoyaleState.alivePlayers.filter(p => p.id !== player2.id);
+                    }
+                }
+            }
+        }
+    }
+    
+    // 更新决赛圈
+    function updateFinalCircle() {
+        // 当只剩2个玩家时启动决赛圈
+        if (battleRoyaleState.alivePlayers.length === 2 && !battleRoyaleState.finalCircleActive) {
+            battleRoyaleState.finalCircleActive = true;
+            battleRoyaleState.circleRadius = 200; // 放大一点的最终范围
+            alert('决赛圈开始收缩！');
+        }
+        
+        // 决赛圈收缩
+        if (battleRoyaleState.finalCircleActive && battleRoyaleState.circleRadius > 50) {
+            battleRoyaleState.circleRadius -= battleRoyaleState.circleSpeed;
+        }
+    }
+    
+    // 检查玩家是否在安全区
+    function checkPlayersInSafeZone() {
+        if (!battleRoyaleState.finalCircleActive) return;
+        
+        battleRoyaleState.alivePlayers.forEach(player => {
+            if (!player.alive) return;
+            
+            const distance = Math.sqrt(
+                (player.x - battleRoyaleState.circleCenter.x) ** 2 + 
+                (player.y - battleRoyaleState.circleCenter.y) ** 2
+            );
+            
+            // 如果玩家在安全区外，持续扣血
+            if (distance > battleRoyaleState.circleRadius) {
+                player.health -= 2;
+                
+                if (player.health <= 0) {
+                    player.alive = false;
+                    battleRoyaleState.alivePlayers = battleRoyaleState.alivePlayers.filter(p => p.id !== player.id);
+                }
+            }
+        });
+    }
+    
+    // 渲染大乱斗游戏
+    function renderBattleRoyale() {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 绘制决赛圈
+        if (battleRoyaleState.finalCircleActive) {
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(
+                battleRoyaleState.circleCenter.x, 
+                battleRoyaleState.circleCenter.y, 
+                battleRoyaleState.circleRadius, 
+                0, 
+                2 * Math.PI
+            );
+            ctx.stroke();
+        }
+        
+        // 绘制玩家
+        battleRoyaleState.players.forEach(player => {
+            if (!player.alive) return;
+            
+            // 绘制玩家
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x - 10, player.y - 10, 20, 20);
+            
+            // 绘制玩家名字
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(player.name, player.x, player.y - 15);
+            
+            // 绘制血量条
+            const barWidth = 30;
+            const barHeight = 4;
+            const healthPercent = player.health / 100;
+            
+            ctx.fillStyle = '#333333';
+            ctx.fillRect(player.x - barWidth/2, player.y + 15, barWidth, barHeight);
+            
+            ctx.fillStyle = healthPercent > 0.5 ? '#2ecc71' : healthPercent > 0.25 ? '#f39c12' : '#e74c3c';
+            ctx.fillRect(player.x - barWidth/2, player.y + 15, barWidth * healthPercent, barHeight);
+        });
+        
+        // 显示存活玩家数
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText(`存活玩家: ${battleRoyaleState.alivePlayers.length}`, 10, 30);
+    }
+    
+    // 检查胜利条件
+    function checkVictoryCondition() {
+        if (battleRoyaleState.alivePlayers.length === 1) {
+            const winner = battleRoyaleState.alivePlayers[0];
+            battleRoyaleState.gameStarted = false;
+            
+            setTimeout(() => {
+                alert(`${winner.name}赢了！`);
+                endBattleRoyaleGame();
+            }, 1000);
+        } else if (battleRoyaleState.alivePlayers.length === 0) {
+            battleRoyaleState.gameStarted = false;
+            
+            setTimeout(() => {
+                alert('游戏结束，没有获胜者！');
+                endBattleRoyaleGame();
+            }, 1000);
+        }
+    }
+    
+    // 结束大乱斗游戏
+    function endBattleRoyaleGame() {
+        // 重置游戏状态
+        battleRoyaleState = {
+            players: [],
+            alivePlayers: [],
+            gameStarted: false,
+            finalCircleActive: false,
+            circleRadius: 400,
+            circleCenter: { x: 400, y: 300 },
+            circleSpeed: 0.5
+        };
+        
+        // 解散房间
+        currentRoom = null;
+        isRoomOwner = false;
+        
+        // 隐藏游戏界面
+        document.getElementById('gameCanvas').style.display = 'none';
+        document.getElementById('mobileControlsSingle').style.display = 'none';
+        document.getElementById('mobileControlsMultiplayer').style.display = 'none';
+        
+        // 显示主菜单
+        showMainMenu();
+    }
+    
+    // 显示主菜单
+    function showMainMenu() {
+        // 重新显示游戏按钮
+        const gameButtons = document.querySelectorAll('.gameButton');
+        gameButtons.forEach(btn => {
+            btn.style.display = 'flex';
+        });
+        
+        // 重新显示创建房间和广场按钮
+        document.getElementById('createRoomButton').style.display = 'flex';
+        document.getElementById('squareButton').style.display = 'flex';
+    }
+    
+    // leaveRoom函数已移动到script开头
+    
+    // closeRoomModals函数已在script开头定义
+    
+    // 房间列表管理
+     let roomList = [];
+     let selectedRoom = null;
+     let plazaUpdateInterval = null;
+     
+     // 广场按钮点击事件
+     document.getElementById('squareButton').addEventListener('click', function() {
+         showPlaza();
+     });
+     
+     // 显示广场
+     function showPlaza() {
+         document.getElementById('plazaModal').style.display = 'block';
+         updateRoomList();
+         
+         // 开始定时更新房间列表（每秒更新）
+         if (plazaUpdateInterval) {
+             clearInterval(plazaUpdateInterval);
+         }
+         plazaUpdateInterval = setInterval(updateRoomList, 1000);
+     }
+     
+     // closePlaza函数已在script开头定义
+     
+     // 更新房间列表
+     function updateRoomList() {
+         const container = document.getElementById('roomListContainer');
+         const emptyPlaza = document.getElementById('emptyPlaza');
+         
+         // 模拟房间数据（实际应用中应该从服务器获取）
+         // 如果当前有房间，添加到列表中
+         if (currentRoom && isRoomOwner) {
+             roomList = [currentRoom];
+         } else {
+             roomList = [];
+         }
+         
+         if (roomList.length === 0) {
+             emptyPlaza.style.display = 'block';
+             // 清除之前的房间列表
+             const existingRooms = container.querySelectorAll('.room-item');
+             existingRooms.forEach(room => room.remove());
+         } else {
+             emptyPlaza.style.display = 'none';
+             
+             // 清除之前的房间列表
+             const existingRooms = container.querySelectorAll('.room-item');
+             existingRooms.forEach(room => room.remove());
+             
+             // 添加房间到列表
+             roomList.forEach((room, index) => {
+                 const roomItem = document.createElement('div');
+                 roomItem.className = 'room-item';
+                 roomItem.style.cssText = `
+                     background-color: #34495e;
+                     margin: 10px 0;
+                     padding: 15px;
+                     border-radius: 8px;
+                     border: 1px solid #3498db;
+                     display: flex;
+                     justify-content: space-between;
+                     align-items: center;
+                 `;
+                 
+                 // 计算剩余时间
+                 const timeLeft = getRoomTimeLeft(room);
+                 
+                 roomItem.innerHTML = `
+                     <div>
+                         <div style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">${room.name}</div>
+                         <div style="color: #3498db; cursor: pointer; text-decoration: underline;" onclick="showRoomDetail(${index})">详细说明></div>
+                     </div>
+                     <div style="text-align: right;">
+                         <div style="margin-bottom: 5px;">👥 ${room.currentPlayers}/${room.playerCount}</div>
+                         <button onclick="quickJoinRoom(${index})" style="background-color: #27ae60; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer;">加入</button>
+                     </div>
+                 `;
+                 
+                 container.appendChild(roomItem);
+             });
+         }
+     }
+     
+     // 获取房间剩余时间
+     function getRoomTimeLeft(room) {
+         // 这里应该根据房间创建时间计算剩余时间
+         // 简化处理，返回固定格式
+         return "1分钟以内";
+     }
+     
+     // 显示房间详情
+     function showRoomDetail(roomIndex) {
+         selectedRoom = roomList[roomIndex];
+         const content = document.getElementById('roomDetailContent');
+         
+         content.innerHTML = `
+             <h3>房间详情</h3>
+             <div style="text-align: left; margin: 15px 0;">
+                 <div style="margin: 8px 0;"><strong>房间名：</strong>${selectedRoom.name}</div>
+                 <div style="margin: 8px 0;"><strong>模式：</strong>${selectedRoom.mode === 'battleRoyale' ? '大乱斗' : selectedRoom.mode}</div>
+                 <div style="margin: 8px 0;"><strong>公开性：</strong>${selectedRoom.privacy === 'public' ? '公开' : '需密码'}</div>
+                 <div style="margin: 8px 0;"><strong>人数：</strong>${selectedRoom.currentPlayers}/${selectedRoom.playerCount}</div>
+                 <div style="margin: 8px 0;"><strong>解散倒计时：</strong>${getRoomTimeLeft(selectedRoom)}</div>
+             </div>
+         `;
+         
+         document.getElementById('roomDetailModal').style.display = 'block';
+     }
+     
+     // 关闭房间详情
+     function closeRoomDetail() {
+         document.getElementById('roomDetailModal').style.display = 'none';
+         selectedRoom = null;
+     }
+     
+     // 快速加入房间
+     function quickJoinRoom(roomIndex) {
+         selectedRoom = roomList[roomIndex];
+         joinRoom();
+     }
+     
+     // 加入房间
+     function joinRoom() {
+         if (!selectedRoom) return;
+         
+         // 检查房间是否已满
+         if (selectedRoom.currentPlayers >= selectedRoom.playerCount) {
+             alert('房间已满！');
+             return;
+         }
+         
+         // 如果需要密码
+         if (selectedRoom.privacy === 'private') {
+             document.getElementById('joinPasswordModal').style.display = 'block';
+             document.getElementById('joinPasswordInput').focus();
+         } else {
+             confirmJoinRoom();
+         }
+     }
+     
+     // 确认加入房间密码
+     function confirmJoinPassword() {
+         const password = document.getElementById('joinPasswordInput').value.trim();
+         
+         if (password !== selectedRoom.password) {
+             alert('密码错误！');
+             return;
+         }
+         
+         document.getElementById('joinPasswordModal').style.display = 'none';
+         document.getElementById('joinPasswordInput').value = '';
+         confirmJoinRoom();
+     }
+     
+     // 关闭密码输入弹窗
+     function closeJoinPassword() {
+         document.getElementById('joinPasswordModal').style.display = 'none';
+         document.getElementById('joinPasswordInput').value = '';
+     }
+     
+     // 确认加入房间
+     function confirmJoinRoom() {
+         // 关闭所有弹窗
+         closeRoomDetail();
+         closePlaza();
+         
+         // 加入房间
+         selectedRoom.currentPlayers++;
+         selectedRoom.players.push(currentUser ? currentUser.name : '玩家' + selectedRoom.currentPlayers);
+         
+         // 设置当前房间
+         currentRoom = selectedRoom;
+         isRoomOwner = false;
+         
+         alert('成功加入房间！');
+         showWaitingRoom();
+     }
     
     // 点击弹窗外部关闭
     document.getElementById('mailboxModal').addEventListener('click', function(e) {
@@ -7427,88 +9032,7 @@ function createDynamicCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     
-    // 几何图形数组
-    const shapes = [];
-    
-    // 创建几何图形
-    function createShape() {
-        const shapeTypes = ['circle', 'triangle', 'square'];
-        const type = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
-        
-        return {
-            type: type,
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            size: Math.random() * 30 + 10,
-            speed: Math.random() * 2 + 0.5,
-            angle: Math.random() * Math.PI * 2,
-            rotation: 0,
-            rotationSpeed: (Math.random() - 0.5) * 0.02,
-            opacity: Math.random() * 0.3 + 0.1,
-            color: `hsl(${Math.random() * 60 + 200}, 70%, 60%)`
-        };
-    }
-    
-    // 初始化图形
-    for (let i = 0; i < 15; i++) {
-        shapes.push(createShape());
-    }
-    
-    // 绘制图形
-    function drawShape(shape) {
-        ctx.save();
-        ctx.globalAlpha = shape.opacity;
-        ctx.translate(shape.x, shape.y);
-        ctx.rotate(shape.rotation);
-        
-        switch (shape.type) {
-            case 'circle':
-                ctx.beginPath();
-                ctx.arc(0, 0, shape.size, 0, Math.PI * 2);
-                ctx.fillStyle = shape.color;
-                ctx.fill();
-                break;
-                
-            case 'triangle':
-                ctx.beginPath();
-                ctx.moveTo(0, -shape.size);
-                ctx.lineTo(-shape.size * 0.866, shape.size * 0.5);
-                ctx.lineTo(shape.size * 0.866, shape.size * 0.5);
-                ctx.closePath();
-                ctx.fillStyle = shape.color;
-                ctx.fill();
-                break;
-                
-            case 'square':
-                ctx.fillStyle = shape.color;
-                ctx.fillRect(-shape.size/2, -shape.size/2, shape.size, shape.size);
-                break;
-        }
-        
-        ctx.restore();
-    }
-    
-    // 动画循环
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        shapes.forEach(shape => {
-            // 更新位置
-            shape.x += Math.cos(shape.angle) * shape.speed;
-            shape.y += Math.sin(shape.angle) * shape.speed;
-            shape.rotation += shape.rotationSpeed;
-            
-            // 边界检测
-            if (shape.x < -shape.size) shape.x = canvas.width + shape.size;
-            if (shape.x > canvas.width + shape.size) shape.x = -shape.size;
-            if (shape.y < -shape.size) shape.y = canvas.height + shape.size;
-            if (shape.y > canvas.height + shape.size) shape.y = -shape.size;
-            
-            drawShape(shape);
-        });
-        
-        requestAnimationFrame(animate);
-    }
+    // 几何图形系统已移除
     
     // 窗口大小改变时重新调整画布
     window.addEventListener('resize', () => {
@@ -7516,7 +9040,7 @@ function createDynamicCanvas() {
         canvas.height = window.innerHeight;
     });
     
-    animate();
+    // 几何图形动画已移除
 }
 
 </script>
