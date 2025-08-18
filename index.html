@@ -804,6 +804,285 @@
             100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
         }
 
+        /* 移动端响应式设计 */
+        @media screen and (max-width: 768px) {
+            /* 登录界面优化 */
+            #loginContainer {
+                width: 90% !important;
+                max-width: 350px !important;
+                padding: 20px !important;
+                margin: 20px auto !important;
+            }
+            
+            #loginTitle {
+                font-size: 24px !important;
+                margin-bottom: 20px !important;
+            }
+            
+            .loginInput {
+                font-size: 16px !important;
+                padding: 12px !important;
+                margin-bottom: 15px !important;
+            }
+            
+            .loginButton {
+                font-size: 16px !important;
+                padding: 12px 20px !important;
+                margin: 8px 0 !important;
+                width: 100% !important;
+            }
+            
+            /* 游戏按钮优化 */
+            .gameButton {
+                font-size: 14px !important;
+                padding: 10px 15px !important;
+                margin: 8px 5px !important;
+                min-height: 44px !important;
+                min-width: 120px !important;
+            }
+            
+            /* 音乐控制按钮 */
+            #musicToggleButton {
+                width: 50px !important;
+                height: 50px !important;
+                font-size: 16px !important;
+                top: 10px !important;
+                left: 10px !important;
+            }
+            
+            /* 建议和邮箱按钮 */
+            #suggestionButton, #mailboxButton, #createRoomButton, #squareButton {
+                width: 60px !important;
+                height: 60px !important;
+                font-size: 14px !important;
+                padding: 8px !important;
+            }
+            
+            #suggestionButton {
+                top: 10px !important;
+                right: 10px !important;
+            }
+            
+            #mailboxButton {
+                top: 80px !important;
+                right: 10px !important;
+            }
+            
+            #createRoomButton {
+                top: 150px !important;
+                right: 10px !important;
+            }
+            
+            #squareButton {
+                top: 220px !important;
+                right: 10px !important;
+            }
+            
+            /* 移动端控制区域 */
+            #mobileControlsSingle, #mobileControlsMultiplayer {
+                position: fixed !important;
+                bottom: 10px !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 1000 !important;
+                padding: 10px !important;
+                background: rgba(0,0,0,0.1) !important;
+                display: none !important;
+            }
+            
+            #mobileControlsSingle {
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 10px !important;
+            }
+            
+            #mobileControlsMultiplayer {
+                flex-direction: row !important;
+                justify-content: space-between !important;
+                gap: 10px !important;
+            }
+            
+            .player-controls {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                gap: 8px !important;
+                flex: 1 !important;
+            }
+            
+            .player-label {
+                color: white !important;
+                font-size: 12px !important;
+                font-weight: bold !important;
+                margin-bottom: 5px !important;
+            }
+            
+            .direction-pad {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                grid-template-rows: repeat(3, 1fr) !important;
+                gap: 2px !important;
+                width: 120px !important;
+                height: 120px !important;
+            }
+            
+            .direction-btn {
+                background: rgba(255,255,255,0.8) !important;
+                border: none !important;
+                border-radius: 8px !important;
+                color: #333 !important;
+                font-size: 16px !important;
+                font-weight: bold !important;
+                cursor: pointer !important;
+                transition: all 0.1s !important;
+                user-select: none !important;
+                -webkit-user-select: none !important;
+                -webkit-touch-callout: none !important;
+                touch-action: manipulation !important;
+            }
+            
+            .direction-btn:active {
+                transform: scale(0.95) !important;
+            }
+            
+            .up-btn { grid-column: 2 !important; grid-row: 1 !important; }
+            .down-btn { grid-column: 2 !important; grid-row: 3 !important; }
+            .left-btn { grid-column: 1 !important; grid-row: 2 !important; }
+            .right-btn { grid-column: 3 !important; grid-row: 2 !important; }
+            
+            .action-buttons {
+                display: flex !important;
+                gap: 8px !important;
+                flex-wrap: wrap !important;
+                justify-content: center !important;
+            }
+            
+            .action-btn {
+                width: 50px !important;
+                height: 50px !important;
+                border: none !important;
+                border-radius: 50% !important;
+                color: white !important;
+                font-size: 10px !important;
+                font-weight: bold !important;
+                cursor: pointer !important;
+                transition: all 0.1s !important;
+                user-select: none !important;
+                -webkit-user-select: none !important;
+                -webkit-touch-callout: none !important;
+                touch-action: manipulation !important;
+            }
+            
+            .action-btn:active {
+                transform: scale(0.9) !important;
+            }
+            
+            .attack-btn { background: #e74c3c !important; }
+            .grenade-btn { background: #f39c12 !important; }
+            .mine-btn { background: #9b59b6 !important; }
+            .rotate-btn { background: #3498db !important; }
+            
+            .player1-controls .direction-btn {
+                background: rgba(52, 152, 219, 0.8) !important;
+                color: white !important;
+            }
+            
+            .player2-controls .direction-btn {
+                background: rgba(231, 76, 60, 0.8) !important;
+                color: white !important;
+            }
+            
+            #skill1Btn, #skill2Btn {
+                width: 50px !important;
+                height: 50px !important;
+                border-radius: 50% !important;
+                background: rgba(52, 152, 219, 0.8) !important;
+                color: white !important;
+                border: none !important;
+                font-size: 10px !important;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+                touch-action: manipulation !important;
+            }
+            
+            /* 弹窗优化 */
+            #suggestionModal, #mailboxModal {
+                padding: 10px !important;
+            }
+            
+            #suggestionModalContent, #mailboxModalContent {
+                width: 90% !important;
+                max-width: 350px !important;
+                padding: 20px !important;
+                margin: 20px auto !important;
+            }
+            
+            #suggestionTextarea {
+                font-size: 16px !important;
+                min-height: 120px !important;
+            }
+            
+            /* 通知优化 */
+            #suggestionNotification, #developerNotification {
+                top: 10px !important;
+                right: 10px !important;
+                left: 10px !important;
+                max-width: none !important;
+                width: auto !important;
+            }
+            
+            /* 游戏界面按钮布局 */
+            .game-controls {
+                flex-direction: column !important;
+                gap: 10px !important;
+                padding: 10px !important;
+            }
+            
+            /* 防止按钮重叠 */
+            body {
+                overflow-x: hidden !important;
+            }
+            
+            /* 触摸优化 */
+            * {
+                -webkit-tap-highlight-color: transparent !important;
+                -webkit-touch-callout: none !important;
+                -webkit-user-select: none !important;
+                user-select: none !important;
+            }
+            
+            input, textarea {
+                -webkit-user-select: text !important;
+                user-select: text !important;
+            }
+        }
+        
+        /* 小屏幕设备进一步优化 */
+        @media screen and (max-width: 480px) {
+            #loginContainer {
+                width: 95% !important;
+                padding: 15px !important;
+            }
+            
+            .gameButton {
+                font-size: 12px !important;
+                padding: 8px 12px !important;
+                margin: 5px 3px !important;
+                min-width: 100px !important;
+            }
+            
+            #suggestionButton, #mailboxButton, #createRoomButton, #squareButton {
+                width: 50px !important;
+                height: 50px !important;
+                font-size: 12px !important;
+            }
+            
+            #skill1Btn, #skill2Btn {
+                width: 50px !important;
+                height: 50px !important;
+                font-size: 12px !important;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -976,9 +1255,64 @@
 
     </div>
     <canvas id="gameCanvas"></canvas>
-    <div id="mobileControls" style="position: absolute; bottom: 20px; width: 100%; display: none; justify-content: space-around;">
-        <button id="skill1Btn" style="padding: 10px 20px; font-size: 16px;">埋下地雷</button>
-        <button id="skill2Btn" style="padding: 10px 20px; font-size: 16px;">旋转射击</button>
+    <!-- 单人模式移动端控制 -->
+    <div id="mobileControlsSingle">
+        <!-- 虚拟方向键 -->
+        <div class="direction-pad">
+            <button id="upBtn" class="direction-btn up-btn">↑</button>
+            <button id="leftBtn" class="direction-btn left-btn">←</button>
+            <button id="rightBtn" class="direction-btn right-btn">→</button>
+            <button id="downBtn" class="direction-btn down-btn">↓</button>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="action-buttons">
+            <button id="attackBtn" class="action-btn attack-btn">攻击</button>
+            <button id="grenadeBtn" class="action-btn grenade-btn">手雷</button>
+            <button id="skill1Btn" class="action-btn mine-btn">地雷</button>
+            <button id="skill2Btn" class="action-btn rotate-btn">旋转</button>
+        </div>
+    </div>
+    
+    <!-- 双人模式移动端控制 -->
+    <div id="mobileControlsMultiplayer">
+        <!-- 玩家1控制区域 -->
+        <div class="player-controls player1-controls">
+            <div class="player-label">玩家1</div>
+            <!-- 玩家1方向键 -->
+            <div class="direction-pad">
+                <button id="p1UpBtn" class="direction-btn up-btn">↑</button>
+                <button id="p1LeftBtn" class="direction-btn left-btn">←</button>
+                <button id="p1RightBtn" class="direction-btn right-btn">→</button>
+                <button id="p1DownBtn" class="direction-btn down-btn">↓</button>
+            </div>
+            <!-- 玩家1操作按钮 -->
+            <div class="action-buttons">
+                <button id="p1AttackBtn" class="action-btn attack-btn">攻击</button>
+                <button id="p1GrenadeBtn" class="action-btn grenade-btn">手雷</button>
+                <button id="p1MineBtn" class="action-btn mine-btn">地雷</button>
+                <button id="p1RotateBtn" class="action-btn rotate-btn">旋转</button>
+            </div>
+        </div>
+        
+        <!-- 玩家2控制区域 -->
+        <div class="player-controls player2-controls">
+            <div class="player-label">玩家2</div>
+            <!-- 玩家2方向键 -->
+            <div class="direction-pad">
+                <button id="p2UpBtn" class="direction-btn up-btn">↑</button>
+                <button id="p2LeftBtn" class="direction-btn left-btn">←</button>
+                <button id="p2RightBtn" class="direction-btn right-btn">→</button>
+                <button id="p2DownBtn" class="direction-btn down-btn">↓</button>
+            </div>
+            <!-- 玩家2操作按钮 -->
+            <div class="action-buttons">
+                <button id="p2AttackBtn" class="action-btn attack-btn">攻击</button>
+                <button id="p2GrenadeBtn" class="action-btn grenade-btn">手雷</button>
+                <button id="p2MineBtn" class="action-btn mine-btn">地雷</button>
+                <button id="p2RotateBtn" class="action-btn rotate-btn">旋转</button>
+            </div>
+        </div>
     </div>
     <script>
         // 云端用户数据存储系统
@@ -2118,20 +2452,312 @@ player = {
 const isPC = /Windows|Macintosh|Linux/.test(navigator.userAgent);
 
 // 初始化移动端控制
+function initMobileControls() {
+    if (!isPC) {
+        // 根据游戏模式显示相应的控制界面
+        if (player2) {
+            // 双人模式
+            document.getElementById('mobileControlsSingle').style.display = 'none';
+            document.getElementById('mobileControlsMultiplayer').style.display = 'flex';
+            initMultiplayerTouchControls();
+        } else {
+            // 单人模式
+            document.getElementById('mobileControlsSingle').style.display = 'flex';
+            document.getElementById('mobileControlsMultiplayer').style.display = 'none';
+            initSinglePlayerTouchControls();
+        }
+    }
+}
+
+// 单人模式触屏控制
+function initSinglePlayerTouchControls() {
+    // 虚拟方向键事件监听
+    // 上方向键
+    document.getElementById('upBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        player.moveUp = true;
+        this.style.background = 'rgba(255,255,255,1)';
+    });
+    document.getElementById('upBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        player.moveUp = false;
+        this.style.background = 'rgba(255,255,255,0.8)';
+    });
+    
+    // 下方向键
+    document.getElementById('downBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        player.moveDown = true;
+        this.style.background = 'rgba(255,255,255,1)';
+    });
+    document.getElementById('downBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        player.moveDown = false;
+        this.style.background = 'rgba(255,255,255,0.8)';
+    });
+    
+    // 左方向键
+    document.getElementById('leftBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        player.moveLeft = true;
+        this.style.background = 'rgba(255,255,255,1)';
+    });
+    document.getElementById('leftBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        player.moveLeft = false;
+        this.style.background = 'rgba(255,255,255,0.8)';
+    });
+    
+    // 右方向键
+    document.getElementById('rightBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        player.moveRight = true;
+        this.style.background = 'rgba(255,255,255,1)';
+    });
+    document.getElementById('rightBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        player.moveRight = false;
+        this.style.background = 'rgba(255,255,255,0.8)';
+    });
+    
+    // 攻击按钮
+    document.getElementById('attackBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (player.canAttack) {
+            player.isAttacking = true;
+            player.attackTimer = 10;
+            player.canAttack = false;
+            setTimeout(() => {
+                player.canAttack = true;
+            }, player.attackCooldown);
+        }
+        this.style.background = '#c0392b';
+    });
+    document.getElementById('attackBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        this.style.background = '#e74c3c';
+    });
+    
+    // 手雷按钮
+    document.getElementById('grenadeBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handlePlayerGrenade(player);
+        this.style.background = '#d68910';
+    });
+    document.getElementById('grenadeBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        this.style.background = '#f39c12';
+    });
+    
+    // 地雷按钮
+    document.getElementById('skill1Btn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handlePlayerMine(player);
+        this.style.background = '#8e44ad';
+    });
+    document.getElementById('skill1Btn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        this.style.background = '#9b59b6';
+    });
+    
+    // 旋转射击按钮
+    document.getElementById('skill2Btn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        activateRotateShoot(player);
+        this.style.background = '#2980b9';
+    });
+    document.getElementById('skill2Btn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        this.style.background = '#3498db';
+    });
+    
+    // 防止触摸时页面滚动
+    document.getElementById('mobileControlsSingle').addEventListener('touchmove', function(e) {
+        e.preventDefault();
+    });
+}
+
+// 双人模式触屏控制
+function initMultiplayerTouchControls() {
+    // 玩家1控制
+    // 方向键
+    document.getElementById('p1UpBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        player.moveUp = true;
+        this.style.background = 'rgba(52, 152, 219, 1)';
+    });
+    document.getElementById('p1UpBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        player.moveUp = false;
+        this.style.background = 'rgba(52, 152, 219, 0.8)';
+    });
+    
+    document.getElementById('p1DownBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        player.moveDown = true;
+        this.style.background = 'rgba(52, 152, 219, 1)';
+    });
+    document.getElementById('p1DownBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        player.moveDown = false;
+        this.style.background = 'rgba(52, 152, 219, 0.8)';
+    });
+    
+    document.getElementById('p1LeftBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        player.moveLeft = true;
+        this.style.background = 'rgba(52, 152, 219, 1)';
+    });
+    document.getElementById('p1LeftBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        player.moveLeft = false;
+        this.style.background = 'rgba(52, 152, 219, 0.8)';
+    });
+    
+    document.getElementById('p1RightBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        player.moveRight = true;
+        this.style.background = 'rgba(52, 152, 219, 1)';
+    });
+    document.getElementById('p1RightBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        player.moveRight = false;
+        this.style.background = 'rgba(52, 152, 219, 0.8)';
+    });
+    
+    // 玩家1操作按钮
+    document.getElementById('p1AttackBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (player.canAttack) {
+            player.isAttacking = true;
+            player.attackTimer = 10;
+            player.canAttack = false;
+            setTimeout(() => {
+                player.canAttack = true;
+            }, player.attackCooldown);
+        }
+    });
+    
+    document.getElementById('p1GrenadeBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handlePlayerGrenade(player);
+    });
+    
+    document.getElementById('p1MineBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handlePlayerMine(player);
+    });
+    
+    document.getElementById('p1RotateBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        activateRotateShoot(player);
+    });
+    
+    // 玩家2控制
+    // 方向键
+    document.getElementById('p2UpBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (player2) {
+            player2.moveUp = true;
+        }
+        this.style.background = 'rgba(231, 76, 60, 1)';
+    });
+    document.getElementById('p2UpBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        if (player2) {
+            player2.moveUp = false;
+        }
+        this.style.background = 'rgba(231, 76, 60, 0.8)';
+    });
+    
+    document.getElementById('p2DownBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (player2) {
+            player2.moveDown = true;
+        }
+        this.style.background = 'rgba(231, 76, 60, 1)';
+    });
+    document.getElementById('p2DownBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        if (player2) {
+            player2.moveDown = false;
+        }
+        this.style.background = 'rgba(231, 76, 60, 0.8)';
+    });
+    
+    document.getElementById('p2LeftBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (player2) {
+            player2.moveLeft = true;
+        }
+        this.style.background = 'rgba(231, 76, 60, 1)';
+    });
+    document.getElementById('p2LeftBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        if (player2) {
+            player2.moveLeft = false;
+        }
+        this.style.background = 'rgba(231, 76, 60, 0.8)';
+    });
+    
+    document.getElementById('p2RightBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (player2) {
+            player2.moveRight = true;
+        }
+        this.style.background = 'rgba(231, 76, 60, 1)';
+    });
+    document.getElementById('p2RightBtn').addEventListener('touchend', function(e) {
+        e.preventDefault();
+        if (player2) {
+            player2.moveRight = false;
+        }
+        this.style.background = 'rgba(231, 76, 60, 0.8)';
+    });
+    
+    // 玩家2操作按钮
+    document.getElementById('p2AttackBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (player2 && player2.canAttack) {
+            player2.isAttacking = true;
+            player2.attackTimer = 10;
+            player2.canAttack = false;
+            setTimeout(() => {
+                player2.canAttack = true;
+            }, player2.attackCooldown);
+        }
+    });
+    
+    document.getElementById('p2GrenadeBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (player2) {
+            handlePlayerGrenade(player2);
+        }
+    });
+    
+    document.getElementById('p2MineBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (player2) {
+            handlePlayerMine(player2);
+        }
+    });
+    
+    document.getElementById('p2RotateBtn').addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (player2) {
+            activateRotateShoot(player2);
+        }
+    });
+    
+    // 防止触摸时页面滚动
+    document.getElementById('mobileControlsMultiplayer').addEventListener('touchmove', function(e) {
+        e.preventDefault();
+    });
+}
+
+// 在游戏开始时调用移动端控制初始化
 if (!isPC) {
-    document.getElementById('mobileControls').style.display = 'flex';
-    
-    // 第一个技能按钮
-    document.getElementById('skill1Btn').addEventListener('touchstart', function() {
-        // 第一个技能逻辑
-        activateBoomerangThrow();
-    });
-    
-    // 第二个技能按钮
-    document.getElementById('skill2Btn').addEventListener('touchstart', function() {
-        // 第二个技能逻辑
-        activateRotateShoot();
-    });
+    initMobileControls();
 }
 
 // 敌人数组
@@ -5570,10 +6196,8 @@ function hideSuggestionNotification(shouldStoreToMailbox = false, message = '', 
     const notification = document.getElementById('suggestionNotification');
     notification.className = '';
     
-    // 如果需要存储到邮箱且有消息内容
-    if (shouldStoreToMailbox && message) {
-        addMessageToAdminMailbox(`收到新建议: ${message}`, userName);
-    }
+    // 移除重复添加消息的逻辑，因为消息已经在提交建议时添加过了
+    // 避免邮箱中出现重复消息
 }
 
 // 在游戏开始时隐藏建议按钮
@@ -6586,10 +7210,20 @@ function showSuggestionNotification(message) {
         }
     }, 10000);
     
-    // 注释掉开发者通知显示逻辑，用户端只显示发送成功通知
-    // 蓝色的开发者通知应该只在真正的开发者端显示
-    console.log('📤 用户端只显示绿色发送成功通知，不显示蓝色开发者通知');
-    console.log('🔍 当前 isDeveloperMode 值:', isDeveloperMode);
+    // 如果启用了开发者模式，1秒后显示开发者收到的通知
+    if (isDeveloperMode) {
+        console.log('⏰ 开发者模式已启用，1秒后将显示开发者通知');
+        setTimeout(() => {
+            console.log('📥 触发开发者通知');
+            showDeveloperNotification({
+                suggestion: message,
+                userAgent: navigator.userAgent
+            }, new Date().toISOString());
+        }, 1000);
+    } else {
+        console.log('⚠️ 开发者模式未启用，不会显示开发者通知');
+        console.log('🔍 当前 isDeveloperMode 值:', isDeveloperMode);
+    }
 }
 
 // 游戏开始时隐藏邮箱、创建房间和广场按钮
